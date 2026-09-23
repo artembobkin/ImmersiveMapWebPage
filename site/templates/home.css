@@ -1,0 +1,194 @@
+/* Landing-page sections: the hero, the quick start and the partner program.
+   Inlined into / and nowhere else, because tools/blogen hands out stylesheets
+   per page and none of this is reachable from an article or the dashboard.
+
+   Design tokens are deliberately NOT here. They live in theme.css, once, so
+   this file and the shared chrome cannot drift apart the way the landing
+   page's own copy of them did. */
+
+/* the starfield canvas; the drawing itself is in home.html.tmpl */
+#stars { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+
+/* ---- hero ---- */
+.hero { padding: clamp(1.5rem, 3vw, 3rem) 0 clamp(2.5rem, 5vw, 4rem); position: relative; }
+/* Decorative glows are inset to 0, not to negative percentages: bleeding past
+   the container widens the document on phones, and only body{overflow-x:hidden}
+   was hiding it. */
+.hero::before { content: ""; position: absolute; inset: -10% 0 auto; height: 70%; background: var(--hero-veil); z-index: -1; pointer-events: none; }
+.hero h1 {
+  font-size: clamp(2.3rem, 6vw, 4rem); line-height: 1.03; letter-spacing: -0.03em;
+  margin: 1.4rem 0 0; font-weight: 800; color: var(--ink-strong); text-wrap: balance; max-width: 16ch;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p.lede { font-size: clamp(1.05rem, 1.6vw, 1.22rem); color: var(--muted); max-width: 60ch; margin: 1.3rem 0 0; }
+
+/* "it's free" badge: the first thing above the headline, because that is the
+   single fact a visitor most needs to know before reading anything else */
+.free-badge {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--mono); font-size: .78rem; letter-spacing: .01em;
+  padding: .42rem .85rem .42rem .7rem; border-radius: 999px; text-decoration: none;
+  background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  color: var(--accent); transition: border-color .15s, transform .12s, box-shadow .2s;
+}
+.free-badge:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 10px 24px -14px var(--glow); }
+.free-badge b { font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.free-badge .pip {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.free-badge .divider { opacity: .45; }
+.free-badge .quiet { color: var(--muted); }
+
+/* github-style badges */
+.badges { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.4rem; }
+.badge { display: inline-flex; align-items: stretch; font-family: var(--mono); font-size: .72rem; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.badge .k { background: var(--surface-2); color: var(--muted); padding: .34rem .6rem; letter-spacing: .02em; }
+.badge .v { background: var(--accent-soft); color: var(--accent); padding: .34rem .6rem; font-weight: 600; display: inline-flex; align-items: center; }
+.badge-link { text-decoration: none; cursor: pointer; transition: border-color .15s; }
+.badge-link:hover { border-color: var(--accent); }
+.badge .gh { width: 13px; height: 13px; margin-right: 5px; }
+
+/* app window frame */
+.stage { margin-top: clamp(2rem, 4vw, 3rem); position: relative; }
+.window {
+  border: 1px solid var(--line-strong); border-radius: 16px; overflow: hidden;
+  background: var(--surface); box-shadow: var(--shadow);
+}
+.window-bar { display: flex; align-items: center; gap: .5rem; padding: .7rem .9rem; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.tl { width: 11px; height: 11px; border-radius: 50%; background: var(--line-strong); }
+.window-bar .title { margin-left: .5rem; font-family: var(--mono); font-size: .74rem; color: var(--muted); }
+.window video, .window img.demo, .window iframe { width: 100%; display: block; aspect-ratio: 16 / 9; background: #05070d; object-fit: cover; border: 0; }
+/* The render gallery: two columns of 16:10 frames, one column on a phone. */
+.shots { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--line); }
+.shots img { width: 100%; display: block; aspect-ratio: 16 / 10; object-fit: cover; background: #05070d; }
+@media (max-width: 700px) { .shots { grid-template-columns: 1fr; } }
+.stage::after {
+  content: ""; position: absolute; inset: auto 0 -18% 0; height: 40%;
+  background: radial-gradient(60% 100% at 50% 0%, var(--glow), transparent 70%);
+  z-index: -1; filter: blur(8px); pointer-events: none;
+}
+
+/* ---- call to action ---- */
+.cta { margin-top: clamp(2rem, 4vw, 3rem); display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
+.cta .hint { font-family: var(--mono); font-size: .88rem; color: var(--muted); margin: 0; max-width: 60ch; }
+.cta .hint a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.cta .hint a:hover { text-decoration: underline; }
+
+/* Both sections are nav targets, so they clear the sticky header rather than
+   landing underneath it. */
+.quickstart, .partners { scroll-margin-top: calc(var(--header-h) + 1rem); }
+
+/* ---- quick start ---- */
+.quickstart { padding: clamp(2.5rem, 5vw, 4rem) 0 0; }
+.quickstart h2 {
+  font-size: clamp(1.5rem, 3vw, 2.1rem); letter-spacing: -0.025em; margin: 0 0 .4rem;
+  font-weight: 800; color: var(--ink-strong);
+}
+.quickstart .sub { color: var(--muted); margin: 0 0 1.8rem; max-width: 58ch; }
+.qs-grid { display: grid; gap: 1.1rem; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 900px) { .qs-grid { grid-template-columns: 0.85fr 1.15fr; } }
+.qs-card {
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+  padding: clamp(1.1rem, 2.2vw, 1.5rem);
+}
+.qs-step {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: .9rem;
+}
+.qs-step .n {
+  display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--accent-soft); font-size: .7rem; letter-spacing: 0;
+}
+/* The row around the copy button. The button itself is in theme.css: the
+   dashboard's key card uses it too, this row does not appear there. */
+.qs-url {
+  display: flex; align-items: center; gap: .6rem;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px;
+  padding: .55rem .7rem; font-family: var(--mono); font-size: .78rem; overflow: hidden;
+}
+.qs-url code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.qs-url code::-webkit-scrollbar { display: none; }
+.qs-hint { font-size: .88rem; color: var(--muted); margin: .9rem 0 0; }
+.qs-hint b { color: var(--ink); font-weight: 600; }
+.qs-pre {
+  margin: 0; padding: 1rem 1.1rem; overflow-x: auto;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+  font-family: var(--mono); font-size: .8rem; line-height: 1.6;
+}
+.qs-pre .k { color: var(--code-kw); }
+.qs-pre .t { color: var(--code-ty); }
+.qs-pre .f { color: var(--code-fn); }
+.qs-pre .a { color: var(--code-at); }
+.qs-req {
+  font-family: var(--mono); font-size: .76rem; color: var(--muted);
+  margin: 1.2rem 0 0; display: flex; flex-wrap: wrap; gap: .5rem 1rem;
+}
+.qs-req a { color: var(--accent); text-decoration: none; }
+.qs-req a:hover { text-decoration: underline; }
+/* ---- early partner program ----
+   The one block on the page asking for something rather than offering it, so it
+   is framed as a panel: same tokens, same card idiom as the quick start, but
+   sitting on an accent wash so it does not read as one more feature section. */
+.partners { padding: clamp(2.5rem, 5vw, 4rem) 0 0; }
+.partner-panel {
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line));
+  border-radius: 18px; box-shadow: var(--shadow);
+  background: radial-gradient(120% 150% at 0% 0%, var(--accent-soft), transparent 58%), var(--surface);
+  padding: clamp(1.3rem, 3.2vw, 2.4rem);
+}
+.partners h2 {
+  font-size: clamp(1.5rem, 3vw, 2.1rem); letter-spacing: -0.025em; margin: 0 0 .4rem;
+  font-weight: 800; color: var(--ink-strong);
+}
+.partners .sub {
+  font-family: var(--mono); font-size: .88rem; color: var(--accent); margin: 0 0 1rem;
+}
+.partners .lede-sm { color: var(--muted); margin: 0 0 1.6rem; max-width: 62ch; }
+.partner-grid { display: grid; gap: 1.1rem; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 900px) { .partner-grid { grid-template-columns: 1fr 1fr; } }
+.partner-card {
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+  padding: clamp(1.1rem, 2.2vw, 1.4rem);
+}
+.partner-card .qs-step .n svg { width: 12px; height: 12px; }
+.partner-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; }
+.partner-list li { position: relative; padding-left: 1.5rem; font-size: .94rem; }
+/* the same pip the free badge uses, so the bullets belong to this page */
+.partner-list li::before {
+  content: ""; position: absolute; left: 1px; top: .58em;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.partner-list b { color: var(--ink-strong); font-weight: 600; }
+.partner-list code { font-family: var(--mono); font-size: .88em; color: var(--muted); }
+.partner-cta { display: flex; flex-direction: column; align-items: flex-start; gap: .9rem; margin-top: 1.6rem; }
+.partner-note { font-family: var(--mono); font-size: .78rem; color: var(--muted); margin: 0; }
+.partner-note b { color: var(--ink-strong); font-weight: 700; }
+.partner-card, .partner-grid > * { min-width: 0; }
+
+/* Grid and flex children default to min-width:auto, so a long code line would
+   widen the whole track instead of scrolling inside its own box. */
+.qs-card, .qs-grid > *, .qs-pre { min-width: 0; }
+
+@media (max-width: 700px) {
+    .hero { padding-top: 1rem; }
+    .hero h1 { max-width: none; }
+    .badges { gap: .4rem; }
+    .badge { font-size: .68rem; }
+
+    .quickstart { padding-top: 2.2rem; }
+    .qs-card { padding: 1.05rem; }
+    /* Wrap the snippet rather than making it a sideways-scrolling box: a nested
+       horizontal scroll fights the page scroll under a thumb. */
+    .qs-pre { font-size: .74rem; padding: .85rem .9rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .qs-url { font-size: .72rem; }
+    .qs-req { gap: .45rem; flex-direction: column; align-items: flex-start; }
+
+    .partners { padding-top: 2.2rem; }
+    .partner-panel { padding: 1.15rem 1.05rem 1.3rem; border-radius: 14px; }
+    .partner-card { padding: 1.05rem; }
+
+    .qs-req a { display: inline-block; padding: .5rem 0; }
+}

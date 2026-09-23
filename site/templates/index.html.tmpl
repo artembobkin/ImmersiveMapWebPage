@@ -1,0 +1,51 @@
+{{define "head" -}}
+<title>Articles · ImmersiveMap</title>
+<meta name="description" content="Technical write-ups on building ImmersiveMap: a native Swift + Metal vector-tile map engine for SwiftUI with a real 3D globe." />
+<link rel="canonical" href="{{.Site.BaseURL}}/articles/" />
+<meta name="keywords" content="Swift, Metal, SwiftUI, vector tiles, map engine, iOS graphics, shaders" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="ImmersiveMap" />
+<meta property="og:title" content="Articles · ImmersiveMap" />
+<meta property="og:description" content="Technical write-ups on building a native Swift + Metal map engine for SwiftUI: rendering, tiles, shaders and the things that went wrong." />
+<meta property="og:url" content="{{.Site.BaseURL}}/articles/" />
+<meta property="og:image" content="{{.Site.BaseURL}}/assets/og-cover.png" />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="640" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Articles · ImmersiveMap" />
+<meta name="twitter:description" content="Technical write-ups on building a native Swift + Metal map engine for SwiftUI." />
+<meta name="twitter:image" content="{{.Site.BaseURL}}/assets/og-cover.png" />
+{{- end}}
+
+{{define "content" -}}
+<section class="page-head">
+  <div class="wrap-narrow">
+    <h1 class="visually-hidden">Articles</h1>
+    <p class="page-note">Notes on building the engine<span class="sep"> · </span><a href="/articles/feed.xml">Subscribe via RSS</a></p>
+  </div>
+</section>
+
+<div class="wrap-narrow">
+{{- if .Articles}}
+  <ul class="post-list">
+  {{- range .Articles}}
+    <li class="post-card" data-slug="{{.Slug}}">
+      <h2><a href="{{.URL}}">{{.Title}}</a></h2>
+      <p>{{.Description}}</p>
+      <div class="post-meta">
+        <time datetime="{{.DateISO}}">{{.DateHuman}}</time>
+        <span class="dot">·</span>
+        <span>{{.ReadingTime}} min read</span>
+        {{- if .Tags}}
+        <span class="dot">·</span>
+        <span class="tags">{{range .Tags}}<span class="tag">{{.}}</span>{{end}}</span>
+        {{- end}}
+      </div>
+    </li>
+  {{- end}}
+  </ul>
+{{- else}}
+  <p class="lede">Nothing published yet. The first write-up is on its way.</p>
+{{- end}}
+</div>
+{{- end}}

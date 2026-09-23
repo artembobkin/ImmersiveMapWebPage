@@ -1,0 +1,79 @@
+{{define "head" -}}
+<title>{{.Tutorial.Title}} · ImmersiveMap tutorials</title>
+<meta name="description" content="{{.Tutorial.Description}}" />
+<link rel="canonical" href="{{.Tutorial.AbsURL}}" />
+{{- if .Tutorial.Tags}}
+<meta name="keywords" content="{{.Tutorial.TagsCSV}}" />
+{{- end}}
+<meta property="og:type" content="video.other" />
+<meta property="og:site_name" content="ImmersiveMap" />
+<meta property="og:title" content="{{.Tutorial.Title}}" />
+<meta property="og:description" content="{{.Tutorial.Description}}" />
+<meta property="og:url" content="{{.Tutorial.AbsURL}}" />
+<meta property="og:image" content="https://i.ytimg.com/vi/{{.Tutorial.Video}}/maxresdefault.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{.Tutorial.Title}}" />
+<meta name="twitter:description" content="{{.Tutorial.Description}}" />
+<meta name="twitter:image" content="https://i.ytimg.com/vi/{{.Tutorial.Video}}/maxresdefault.jpg" />
+<script type="application/ld+json">
+{{.Tutorial.JSONLD}}
+</script>
+{{- end}}
+
+{{define "content" -}}
+<article class="post">
+  <div class="wrap-narrow">
+    <header class="page-head">
+      <p class="eyebrow"><a href="/tutorials/" style="text-decoration:none">← Tutorials</a></p>
+      <h1>{{.Tutorial.Title}}</h1>
+      <div class="post-meta">
+        <time datetime="{{.Tutorial.DateISO}}">{{.Tutorial.DateHuman}}</time>
+        {{- if .Tutorial.Duration}}
+        <span class="dot">·</span>
+        <span>{{.Tutorial.Duration}}</span>
+        {{- end}}
+        {{- if .Tutorial.Tags}}
+        <span class="dot">·</span>
+        <span class="tags">{{range .Tutorial.Tags}}<span class="tag">{{.}}</span>{{end}}</span>
+        {{- end}}
+      </div>
+    </header>
+
+    <div class="tut-embed">
+      <iframe
+        src="https://www.youtube-nocookie.com/embed/{{.Tutorial.Video}}?rel=0&amp;modestbranding=1&amp;playsinline=1"
+        title="{{.Tutorial.Title}}"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen loading="lazy"></iframe>
+    </div>
+
+    {{- if .Tutorial.HasBody}}
+    <div class="post-body">
+{{.Tutorial.HTML}}
+    </div>
+    {{- end}}
+
+    <p class="page-note">
+      <a href="https://www.youtube.com/watch?v={{.Tutorial.Video}}">Watch on YouTube</a><span class="sep"> · </span><a href="https://github.com/artembobkin/ImmersiveMap">Source on GitHub</a>
+    </p>
+  </div>
+</article>
+{{- end}}
+
+{{define "scripts" -}}
+<script>
+/* Heading anchors, same as on the article pages. */
+(function () {
+  var hs = document.querySelectorAll(".post-body h2[id], .post-body h3[id]");
+  for (var i = 0; i < hs.length; i++) {
+    var a = document.createElement("a");
+    a.className = "anchor";
+    a.href = "#" + hs[i].id;
+    a.textContent = "#";
+    a.setAttribute("aria-hidden", "true");
+    hs[i].appendChild(a);
+  }
+})();
+</script>
+{{- end}}

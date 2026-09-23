@@ -1,0 +1,4 @@
+# Build output: `make site` rewrites it from scratch every run.
+/dist/
+
+.DS_Store

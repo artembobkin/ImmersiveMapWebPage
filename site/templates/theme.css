@@ -1,0 +1,267 @@
+/* Design tokens and the chrome every page wears: nav, footer, buttons, layout.
+   Inlined into each HTML file by tools/blogen rather than linked as
+   /assets/theme.css, because Caddy serves everything under /assets/ as
+   immutable for a year (see deploy/Caddyfile), so a linked stylesheet would
+   stick in caches after edits.
+
+   This is the only place tokens are defined. The landing page used to keep its
+   own copy and they drifted; it now takes this file like every other page, and
+   its own sections live in home.css. */
+
+:root {
+  color-scheme: light dark;
+
+  /* type */
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
+
+  /* light theme (default) */
+  --ground: #f3f6fc;
+  --surface: #ffffff;
+  --surface-2: #eef3fb;
+  --ink: #0c1420;
+  --ink-strong: #05090f;
+  --muted: #56657d;
+  --line: rgba(20, 55, 100, 0.12);
+  --line-strong: rgba(20, 55, 100, 0.20);
+  --accent: #1f6feb;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(31, 111, 235, 0.10);
+  --glow: rgba(31, 111, 235, 0.18);
+  --bad: #d1493f;
+  --hero-veil: radial-gradient(120% 90% at 50% -10%, rgba(31,111,235,0.10), transparent 60%);
+  --shadow: 0 24px 60px -28px rgba(12, 30, 66, 0.35);
+
+  /* Read by the landing page's starfield through getComputedStyle, not by any
+     rule, so a search for var(--star) finds nothing. It is in use. */
+  --star: rgba(20, 55, 100, 0.0);
+
+  /* the hand-marked-up quick-start snippet; mirrors the GitHub palette the
+     article pages get from Chroma (code.css) */
+  --code-kw: #cf222e; --code-ty: #953800; --code-fn: #8250df; --code-at: #0550ae;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #060911; --surface: #0d1320; --surface-2: #121a2b;
+    --ink: #e4ebf7; --ink-strong: #f6f9ff; --muted: #8a9bb5;
+    --line: rgba(140,170,210,0.14); --line-strong: rgba(140,170,210,0.24);
+    --accent: #4d9bff; --accent-ink: #ffffff; --accent-soft: rgba(77,155,255,0.12);
+    --glow: rgba(77,155,255,0.32); --bad: #ff6f61;
+    --hero-veil: radial-gradient(120% 90% at 50% -10%, rgba(77,155,255,0.16), transparent 62%);
+    --shadow: 0 30px 80px -30px rgba(0,0,0,0.85);
+    --star: rgba(210, 226, 250, 0.9);
+    --code-kw: #ff7b72; --code-ty: #ffa657; --code-fn: #d2a8ff; --code-at: #79c0ff;
+  }
+}
+
+/* explicit toggle overrides both directions */
+:root[data-theme="light"] {
+  --ground: #f3f6fc; --surface: #ffffff; --surface-2: #eef3fb;
+  --ink: #0c1420; --ink-strong: #05090f; --muted: #56657d;
+  --line: rgba(20,55,100,0.12); --line-strong: rgba(20,55,100,0.20);
+  --accent: #1f6feb; --accent-ink: #ffffff; --accent-soft: rgba(31,111,235,0.10);
+  --glow: rgba(31,111,235,0.18); --bad: #d1493f;
+  --hero-veil: radial-gradient(120% 90% at 50% -10%, rgba(31,111,235,0.10), transparent 60%);
+  --shadow: 0 24px 60px -28px rgba(12,30,66,0.35);
+  --star: rgba(20, 55, 100, 0.0);
+  --code-kw: #cf222e; --code-ty: #953800; --code-fn: #8250df; --code-at: #0550ae;
+}
+:root[data-theme="dark"] {
+  --ground: #060911; --surface: #0d1320; --surface-2: #121a2b;
+  --ink: #e4ebf7; --ink-strong: #f6f9ff; --muted: #8a9bb5;
+  --line: rgba(140,170,210,0.14); --line-strong: rgba(140,170,210,0.24);
+  --accent: #4d9bff; --accent-ink: #ffffff; --accent-soft: rgba(77,155,255,0.12);
+  --glow: rgba(77,155,255,0.32); --bad: #ff6f61;
+  --hero-veil: radial-gradient(120% 90% at 50% -10%, rgba(77,155,255,0.16), transparent 62%);
+  --shadow: 0 30px 80px -30px rgba(0,0,0,0.85);
+  --star: rgba(210, 226, 250, 0.9);
+  --code-kw: #ff7b72; --code-ty: #ffa657; --code-fn: #d2a8ff; --code-at: #79c0ff;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  background: var(--ground);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+a { color: inherit; }
+img, video { max-width: 100%; display: block; }
+
+.wrap { width: min(1080px, 100% - 2.5rem); margin-inline: auto; }
+.wrap-narrow { width: min(720px, 100% - 2.5rem); margin-inline: auto; }
+
+/* ---- nav ----
+   --header-h is the sticky header's own height, kept as a token because anchor
+   targets need it: without a scroll margin, jumping to /#partners lands the
+   heading underneath the header rather than below it. */
+:root { --header-h: 61px; }
+header.nav {
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: saturate(140%) blur(10px);
+  background: color-mix(in srgb, var(--ground) 78%, transparent);
+  border-bottom: 1px solid var(--line);
+}
+.nav-inner { display: flex; align-items: center; gap: 1.25rem; height: 60px; }
+.brand { display: inline-flex; align-items: center; gap: .55rem; font-family: var(--mono); font-weight: 600; letter-spacing: -0.01em; text-decoration: none; color: var(--ink-strong); }
+.brand svg { width: 22px; height: 22px; display: block; }
+.brand .wm { color: var(--muted); font-weight: 500; }
+.brand .wm b { color: var(--ink-strong); font-weight: 700; }
+.nav-links { display: flex; gap: 1.3rem; margin-left: auto; align-items: center; }
+.nav-links a { font-family: var(--mono); font-size: .82rem; text-decoration: none; color: var(--muted); transition: color .15s; }
+.nav-links a:hover { color: var(--ink); }
+.nav-links a[aria-current="page"] { color: var(--accent); font-weight: 600; }
+/* Kept in the markup for search engines and screen readers, out of the layout
+   for everyone else: section pages carry their title in the nav already. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.icon-btn {
+  display: inline-grid; place-items: center; width: 34px; height: 34px;
+  border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface);
+  color: var(--ink); cursor: pointer; transition: border-color .15s, color .15s;
+}
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+.icon-btn svg { width: 17px; height: 17px; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+
+/* ---- buttons ----
+   One geometry, several fills. There used to be three geometries for what reads
+   as the same control: .btn on the landing page, .price-cta on the pricing page
+   and .auth-btn on sign-in, each with its own padding, radius and font size. */
+.btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--mono); font-size: .92rem; font-weight: 600; letter-spacing: -0.01em;
+  padding: .82rem 1.35rem; border-radius: 11px; text-decoration: none;
+  border: 1px solid transparent; cursor: pointer;
+  transition: transform .12s, box-shadow .2s, border-color .15s, color .15s, background .15s;
+}
+.btn svg { width: 18px; height: 18px; }
+
+/* The small size, for controls that sit inside a card rather than end a page:
+   Refresh, Cancel, sign out. */
+.btn-sm { font-size: .78rem; gap: .4rem; padding: .5rem .9rem; border-radius: 9px; }
+.btn-sm svg { width: 15px; height: 15px; }
+
+/* --accent-ink is white in both themes, so the filled button reads the same way
+   whichever one is on. Dark mode lifts the accent to #4d9bff for legible links
+   on a dark ground, which leaves white on it at 2.8:1: below the 4.5:1 AA line,
+   and a deliberate call. Deepening the fill to #1f6feb here would take it to
+   4.6:1 if that trade stops being worth it. */
+.btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 8px 26px -12px var(--glow); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 34px -12px var(--glow); }
+
+.btn-ghost { border-color: var(--line-strong); background: var(--surface); color: var(--ink); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-ghost:disabled { opacity: .55; cursor: progress; }
+
+.btn-danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+.btn-danger:hover { filter: brightness(1.06); }
+
+/* The provider button keeps GitHub's own colour rather than the accent: it is
+   not our call to action, it is their sign-in. */
+.btn-provider {
+  width: 100%; justify-content: center;
+  background: var(--ink-strong); color: var(--ground); border-color: var(--ink-strong);
+}
+.btn-provider:hover { transform: translateY(-1px); opacity: .92; }
+
+/* The error box, on the sign-in card, the support chat and the operator
+   console. It lives here because pages.css asked for it: the second copy left a
+   note saying a third should be lifted into theme.css rather than written
+   again, and the console is the third. Spacing differs per site, so only the
+   colours and the shape are shared. */
+.msg-error {
+  padding: .7rem .9rem; border-radius: 10px; font-size: .88rem;
+  background: color-mix(in srgb, var(--bad) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--bad) 40%, transparent);
+  color: var(--bad);
+}
+
+
+/* Shared by the dashboard's key card and the landing page's quick start, which
+   is why it is here and the row around it (.qs-url) is in home.css. */
+.copy-btn {
+  flex-shrink: 0; font-family: var(--mono); font-size: .7rem; font-weight: 600;
+  padding: .45rem .7rem; border-radius: 7px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--muted);
+  transition: border-color .15s, color .15s;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---- footer ---- */
+footer.site { border-top: 1px solid var(--line); padding: 2.4rem 0; margin-top: 2rem; }
+.foot-inner { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: .78rem; color: var(--muted); }
+.foot-inner a { color: var(--muted); text-decoration: none; }
+.foot-inner a:hover { color: var(--accent); }
+.foot-links { display: flex; flex-wrap: wrap; gap: 1.2rem; }
+
+/* ---- the nav on narrow screens ----
+   The nav is the one thing that genuinely does not fit: brand plus links plus
+   the theme toggle overflow, and the links get squeezed until "Quick start"
+   breaks across two lines inside its own box. Below the breakpoint the links
+   drop onto their own row and spread out, which also gives them a real tap
+   height.
+
+   744 rather than a round 700 because it is measured: the six-link row needs
+   745px to sit on one line without any label breaking. It is its own media
+   query, separate from the phone rules below, so widening the nav's breakpoint
+   does not drag the pricing grid and the article cards along with it. */
+@media (max-width: 744px) {
+  :root { --header-h: 93px; } /* the links move to a second row */
+  .nav-inner { flex-wrap: wrap; height: auto; padding: .55rem 0 .35rem; row-gap: .1rem; }
+  /* wrap is a guard: whatever the link count, the row never pushes a horizontal
+     scrollbar across the page. Row gap stays 0 so a wrap costs nothing extra. */
+  .nav-links {
+    width: 100%; margin-left: 0; justify-content: space-between; gap: 0 .5rem; flex-wrap: wrap;
+  }
+  /* Six links do not fit one phone-width row, and a second row would add 50px to
+     a header that is sticky on every screen. The "Quick start" anchor gives way:
+     it points at a section of the landing page, which is one tap on the logo. */
+  /* Six links do not fit one phone-width row, and the sign-out button costs
+     another 34px on top. The landing-page anchors give way first (both are one
+     tap on the logo), then the label on the button, then the length of the
+     account name. Measured at 390px: what is left comes to ~334px in a 343px
+     row, so the toggle stays on the links line instead of orphaning below it. */
+  .nav-links a[href="/#quick-start"], .nav-links a[href="/#partners"] { display: none; }
+  .nav-links a { font-size: .78rem; padding: .6rem 0; }
+  .nav-links { gap: 0 .4rem; }
+  .icon-btn { width: 38px; height: 38px; }
+  .brand { padding: .35rem 0; }
+}
+
+/* ---- phones ---- */
+@media (max-width: 700px) {
+  .btn { width: 100%; justify-content: center; }
+  /* the landing page had this and the dashboard did not, so the key card's
+     Copy stayed under a 44px tap target on a phone */
+  .copy-btn { padding: .7rem .75rem; }
+
+  .wrap, .wrap-narrow { width: calc(100% - 2rem); }
+
+  /* Footer links stack into a comfortable two-row grid rather than a cramped
+     single line, and each one gets a tappable box. */
+  .foot-inner { gap: .6rem; }
+  .foot-links { gap: .2rem 1.1rem; }
+  .foot-inner a { padding: .55rem 0; display: inline-block; }
+}
+
+/* Narrower phones: the remaining links plus the toggle need every pixel.
+   389 rather than a round 380 because that is measured, not guessed: between
+   381 and 389 the roomier type above no longer fits and the theme toggle drops
+   onto a line of its own, which reads as a bug. */
+@media (max-width: 389px) {
+  .nav-links { gap: 0 .35rem; }
+  .nav-links a { font-size: .74rem; }
+}

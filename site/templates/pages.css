@@ -1,0 +1,139 @@
+/* Components of the generated pages: article and tutorial listings, the post
+   body, the pricing table, sign-in and the account dashboard.
+
+   Split out of theme.css so the landing page does not inline twenty kilobytes
+   of rules it can never match. tools/blogen hands this sheet to every page
+   except / (see the stylesheets table in main.go). It always comes after
+   theme.css, so it may rely on the tokens and the chrome being defined. */
+
+/* ---- page head ---- */
+.page-head { padding: clamp(2rem, 5vw, 3.6rem) 0 clamp(1.2rem, 2vw, 2rem); position: relative; }
+.page-head h1 {
+  font-size: clamp(2rem, 4.6vw, 3rem); line-height: 1.06; letter-spacing: -0.03em;
+  margin: 0; font-weight: 800; color: var(--ink-strong); text-wrap: balance;
+}
+.page-head p.lede { font-size: clamp(1rem, 1.5vw, 1.14rem); color: var(--muted); max-width: 62ch; margin: 1rem 0 0; }
+/* The footnote to the lede: what a "request" is counted as. It qualifies the
+   sentence above it, so it reads a step quieter rather than as a second lede. */
+.page-head p.lede-note { font-size: .92rem; color: var(--muted); max-width: 62ch; margin: .8rem 0 0; opacity: .85; }
+.eyebrow { font-family: var(--mono); font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0 0 .9rem; }
+
+/* one quiet line under a section title, e.g. the RSS hint */
+.page-note { font-family: var(--mono); font-size: .8rem; color: var(--muted); margin: .7rem 0 0; }
+.page-note a { color: var(--accent); text-decoration: none; }
+.page-note a:hover { text-decoration: underline; }
+
+/* ---- article index ---- */
+.post-list { list-style: none; margin: 0 0 clamp(3rem, 6vw, 5rem); padding: 0; display: grid; gap: 1rem; }
+.post-card {
+  position: relative; /* anchors the whole-card link overlay below */
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+  padding: clamp(1.1rem, 2.4vw, 1.6rem); transition: border-color .15s, transform .15s, box-shadow .2s;
+}
+.post-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+.post-card h2 { margin: 0; font-size: clamp(1.15rem, 2.2vw, 1.45rem); line-height: 1.25; letter-spacing: -0.02em; color: var(--ink-strong); }
+.post-card h2 a { text-decoration: none; }
+/* Stretch the title's link across the card so the whole thing is clickable,
+   while the link itself stays on the heading for screen readers and for the
+   status bar preview. */
+.post-card h2 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.post-card p { margin: .6rem 0 0; color: var(--muted); }
+.post-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; font-family: var(--mono); font-size: .74rem; color: var(--muted); margin-top: .85rem; }
+.post-meta .dot { opacity: .5; }
+.tag { display: inline-block; font-family: var(--mono); font-size: .7rem; padding: .18rem .5rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+/* ---- tutorials ---- */
+.tut-list {
+  list-style: none; margin: 0 0 clamp(3rem, 6vw, 5rem); padding: 0;
+  display: grid; gap: 1.2rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.tut-card {
+  position: relative; overflow: hidden;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+  transition: border-color .15s, transform .15s, box-shadow .2s;
+}
+.tut-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
+.tut-thumb { position: relative; aspect-ratio: 16 / 9; background: var(--surface-2); }
+.tut-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.tut-thumb .play {
+  position: absolute; inset: 0; margin: auto; width: 52px; height: 52px;
+  display: grid; place-items: center; border-radius: 50%;
+  background: rgba(8, 14, 26, .62); color: #fff; backdrop-filter: blur(2px);
+  transition: transform .15s, background .15s;
+}
+.tut-card:hover .play { transform: scale(1.08); background: var(--accent); color: var(--accent-ink); }
+.tut-thumb .play svg { width: 20px; height: 20px; margin-left: 2px; }
+.tut-duration {
+  position: absolute; right: .55rem; bottom: .55rem;
+  font-family: var(--mono); font-size: .7rem; padding: .12rem .4rem; border-radius: 5px;
+  background: rgba(8, 14, 26, .78); color: #fff;
+}
+.tut-body { padding: clamp(.9rem, 2vw, 1.15rem); }
+.tut-body h2 { margin: 0; font-size: 1.06rem; line-height: 1.3; letter-spacing: -0.01em; color: var(--ink-strong); }
+.tut-body h2 a { text-decoration: none; }
+.tut-body h2 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.tut-body p { margin: .45rem 0 0; color: var(--muted); font-size: .92rem; }
+
+/* the player on a tutorial page, framed like the landing hero */
+.tut-embed {
+  border: 1px solid var(--line-strong); border-radius: 16px; overflow: hidden;
+  background: var(--surface); box-shadow: var(--shadow); margin-top: 1.6rem;
+}
+.tut-embed iframe { width: 100%; display: block; aspect-ratio: 16 / 9; background: #05070d; border: 0; }
+
+/* ---- article body ---- */
+.post { padding-bottom: clamp(2rem, 4vw, 3rem); }
+.post-body { font-size: 1.06rem; }
+.post-body > * + * { margin-top: 1.15em; }
+.post-body h2 {
+  font-size: clamp(1.35rem, 2.6vw, 1.75rem); letter-spacing: -0.02em; line-height: 1.2;
+  color: var(--ink-strong); margin-top: 2.4em; padding-top: .2em;
+}
+.post-body h3 { font-size: clamp(1.1rem, 2vw, 1.3rem); letter-spacing: -0.01em; color: var(--ink-strong); margin-top: 1.9em; }
+.post-body h2 a.anchor, .post-body h3 a.anchor { text-decoration: none; color: var(--muted); opacity: 0; margin-left: .35rem; font-weight: 400; }
+.post-body h2:hover a.anchor, .post-body h3:hover a.anchor { opacity: .6; }
+.post-body a { color: var(--accent); text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); text-underline-offset: 2px; }
+.post-body ul, .post-body ol { padding-left: 1.4rem; }
+.post-body li + li { margin-top: .35em; }
+.post-body blockquote {
+  margin-inline: 0; padding: .1rem 0 .1rem 1.1rem; border-left: 3px solid var(--accent);
+  color: var(--muted); font-style: italic;
+}
+.post-body img { border-radius: 12px; border: 1px solid var(--line); }
+.post-body figure { margin-inline: 0; }
+.post-body figcaption { font-family: var(--mono); font-size: .76rem; color: var(--muted); margin-top: .6rem; text-align: center; }
+.post-body hr { border: 0; border-top: 1px solid var(--line); margin-block: 2.5em; }
+.post-body code {
+  font-family: var(--mono); font-size: .88em;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 5px; padding: .1em .35em;
+}
+.post-body pre {
+  font-family: var(--mono); font-size: .84rem; line-height: 1.55;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+  padding: 1rem 1.1rem; overflow-x: auto;
+}
+.post-body pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+.post-body table { width: 100%; border-collapse: collapse; font-size: .92rem; display: block; overflow-x: auto; }
+.post-body th, .post-body td { border: 1px solid var(--line); padding: .5rem .7rem; text-align: left; }
+.post-body th { background: var(--surface-2); font-family: var(--mono); font-size: .8rem; }
+
+/* ---- phones ---- */
+@media (max-width: 700px) {
+  .page-note a, .eyebrow a { display: inline-block; padding: .55rem 0; }
+  /* Stack the note instead of wrapping mid-sentence, which would leave the
+     separator dangling at the end of a line. */
+  .page-note .sep { display: none; }
+  .page-note a { display: block; }
+
+  .post-card, .tut-body { padding: 1.05rem; }
+  .post-body { font-size: 1rem; }
+  .post-body pre { font-size: .78rem; padding: .85rem .9rem; border-radius: 10px; }
+}
+
+/* Long code lines and URLs must scroll inside their own box, never widen the
+   page. A grid/flex child defaults to min-width:auto, which lets its content
+   push the track wider. This is what actually enforces the scroll. */
+.post-body pre, .post-body table, .tut-embed { max-width: 100%; min-width: 0; }
+.post-card, .tut-card { min-width: 0; }

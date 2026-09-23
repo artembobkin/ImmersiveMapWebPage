@@ -1,0 +1,57 @@
+{{define "head" -}}
+<title>Tutorials · ImmersiveMap</title>
+<meta name="description" content="Short screencasts on using ImmersiveMap: adding the package, the camera, tile providers, markers and labels in a SwiftUI app." />
+<link rel="canonical" href="{{.Site.BaseURL}}/tutorials/" />
+<meta name="keywords" content="SwiftUI tutorial, Metal map, ImmersiveMap, iOS map SDK, screencast" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="ImmersiveMap" />
+<meta property="og:title" content="Tutorials · ImmersiveMap" />
+<meta property="og:description" content="Short screencasts on using ImmersiveMap in a SwiftUI app." />
+<meta property="og:url" content="{{.Site.BaseURL}}/tutorials/" />
+<meta property="og:image" content="{{.Site.BaseURL}}/assets/og-cover.png" />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="640" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Tutorials · ImmersiveMap" />
+<meta name="twitter:description" content="Short screencasts on using ImmersiveMap in a SwiftUI app." />
+<meta name="twitter:image" content="{{.Site.BaseURL}}/assets/og-cover.png" />
+{{- end}}
+
+{{define "content" -}}
+<section class="page-head">
+  <div class="wrap">
+    <h1 class="visually-hidden">Tutorials</h1>
+    <p class="page-note">Short screencasts, one thing at a time</p>
+  </div>
+</section>
+
+<div class="wrap">
+{{- if .Tutorials}}
+  <ul class="tut-list">
+  {{- range .Tutorials}}
+    <li class="tut-card">
+      <div class="tut-thumb">
+        <!-- maxresdefault is the only 16:9 thumbnail YouTube exposes; hqdefault
+             is 4:3 and letterboxes the frame. Not every video has a maxres, so
+             fall back once. -->
+        <img src="https://i.ytimg.com/vi/{{.Video}}/maxresdefault.jpg" alt="" loading="lazy" width="480" height="270"
+             onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/{{.Video}}/hqdefault.jpg'" />
+        <span class="play" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        {{- if .Duration}}
+        <span class="tut-duration">{{.Duration}}</span>
+        {{- end}}
+      </div>
+      <div class="tut-body">
+        <h2><a href="{{.URL}}">{{.Title}}</a></h2>
+        <p>{{.Description}}</p>
+      </div>
+    </li>
+  {{- end}}
+  </ul>
+{{- else}}
+  <p class="lede">No screencasts yet. The first one is being recorded.</p>
+{{- end}}
+</div>
+{{- end}}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>ImmersiveMap Articles</title>
+    <link>{{.Site.BaseURL}}/articles/</link>
+    <description>Technical write-ups on building ImmersiveMap, a native Swift + Metal vector-tile map engine for SwiftUI.</description>
+    <language>en</language>
+    <atom:link href="{{.Site.BaseURL}}/articles/feed.xml" rel="self" type="application/rss+xml" />
+{{- if .Articles}}
+    <lastBuildDate>{{(index .Articles 0).DateRFC822}}</lastBuildDate>
+{{- end}}
+{{- range .Articles}}
+    <item>
+      <title>{{xesc .Title}}</title>
+      <link>{{xesc .AbsURL}}</link>
+      <guid isPermaLink="true">{{xesc .AbsURL}}</guid>
+      <pubDate>{{.DateRFC822}}</pubDate>
+      <description>{{xesc .Description}}</description>
+{{- range .Tags}}
+      <category>{{xesc .}}</category>
+{{- end}}
+      <content:encoded><![CDATA[{{cdata .HTMLRaw}}]]></content:encoded>
+    </item>
+{{- end}}
+  </channel>
+</rss>

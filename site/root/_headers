@@ -1,0 +1,18 @@
+# Cache policy for Cloudflare Pages. Copied to the root of the build output by
+# the generator, which is where Pages reads it from.
+#
+# Everything under /assets/ is content that only ever changes under a new name,
+# so it is cached for a year and never revalidated. The pages themselves carry a
+# short TTL instead: a fresh deploy should be visible in minutes, not after a
+# browser decides to look again.
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  Cache-Control: public, max-age=300
+
+# Readers are happier with the real feed type; .xml alone would be served as
+# text/xml.
+/articles/feed.xml
+  Content-Type: application/rss+xml; charset=utf-8

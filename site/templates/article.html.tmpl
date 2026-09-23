@@ -1,0 +1,70 @@
+{{define "head" -}}
+<title>{{.Article.Title}} · ImmersiveMap</title>
+<meta name="description" content="{{.Article.Description}}" />
+<link rel="canonical" href="{{.Article.AbsURL}}" />
+{{- if .Article.Tags}}
+<meta name="keywords" content="{{.Article.TagsCSV}}" />
+{{- end}}
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="ImmersiveMap" />
+<meta property="og:title" content="{{.Article.Title}}" />
+<meta property="og:description" content="{{.Article.Description}}" />
+<meta property="og:url" content="{{.Article.AbsURL}}" />
+<meta property="og:image" content="{{.Article.CoverAbs}}" />
+<meta property="og:image:width" content="1280" />
+<meta property="og:image:height" content="640" />
+<meta property="article:published_time" content="{{.Article.DateISO}}" />
+{{- range .Article.Tags}}
+<meta property="article:tag" content="{{.}}" />
+{{- end}}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{.Article.Title}}" />
+<meta name="twitter:description" content="{{.Article.Description}}" />
+<meta name="twitter:image" content="{{.Article.CoverAbs}}" />
+<script type="application/ld+json">
+{{.Article.JSONLD}}
+</script>
+{{- end}}
+
+{{define "content" -}}
+<article class="post">
+  <div class="wrap-narrow">
+    <header class="page-head">
+      <p class="eyebrow"><a href="/articles/" style="text-decoration:none">← Articles</a></p>
+      <h1>{{.Article.Title}}</h1>
+      <div class="post-meta">
+        <time datetime="{{.Article.DateISO}}">{{.Article.DateHuman}}</time>
+        <span class="dot">·</span>
+        <span>{{.Article.ReadingTime}} min read</span>
+        {{- if .Article.Tags}}
+        <span class="dot">·</span>
+        <span class="tags">{{range .Article.Tags}}<span class="tag">{{.}}</span>{{end}}</span>
+        {{- end}}
+      </div>
+    </header>
+
+    <div class="post-body">
+{{.Article.HTML}}
+    </div>
+
+  </div>
+</article>
+{{- end}}
+
+{{define "scripts" -}}
+<script>
+/* Heading anchors: the generator emits ids, this turns them into click targets. */
+(function () {
+  var hs = document.querySelectorAll(".post-body h2[id], .post-body h3[id]");
+  for (var i = 0; i < hs.length; i++) {
+    var a = document.createElement("a");
+    a.className = "anchor";
+    a.href = "#" + hs[i].id;
+    a.textContent = "#";
+    a.setAttribute("aria-hidden", "true");
+    hs[i].appendChild(a);
+  }
+})();
+
+</script>
+{{- end}}
