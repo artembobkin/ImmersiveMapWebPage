@@ -4,6 +4,14 @@
   // there is no `main` here because the site is files and nothing else.
   "name": "immersivemapwebpage",
   "compatibility_date": "2026-09-23",
+
+  // Rendering the site is part of deploying it: wrangler runs this before it
+  // uploads anything, so a deploy from a fresh clone works with no build step
+  // configured anywhere else. `go run` rather than `make site` because the
+  // build image is guaranteed to have Go and not guaranteed to have make.
+  "build": {
+    "command": "go run . -content articles -tutorials tutorials -site site -out dist -base-url https://immersivemap.dev"
+  },
   "assets": {
     // Produced by `make site`, wiped and rewritten on every build. The _headers
     // file the generator copies to the root of it is read from here too: it is

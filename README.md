@@ -42,15 +42,11 @@ by hand; regenerate it with `make code-css`.
 
 ## Deployment
 
-Cloudflare Workers with static assets, wired to this repository. The build
-command is
-
-```sh
-go run . -content articles -tutorials tutorials -site site -out dist -base-url https://immersivemap.dev
-```
-
-and the deploy command is `npx wrangler deploy`, which reads `wrangler.jsonc`
-and uploads `dist/` — there is no Worker script, only files.
+Cloudflare Workers with static assets, wired to this repository. The only
+command the host needs is `npx wrangler deploy`: `wrangler.jsonc` carries the
+build command as well as the upload, so the site is rendered and then published
+from a fresh clone with nothing configured in the dashboard. There is no Worker
+script, only files.
 
 `site/root/_headers` rides along into the output, where Workers reads it as
 configuration rather than serving it: a year and `immutable` for `/assets/*`,
