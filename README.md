@@ -52,9 +52,10 @@ script, only files.
 configuration rather than serving it: a year and `immutable` for `/assets/*`,
 five minutes for the pages, and the RSS content type for the feed.
 
-The build image ships an older Go than `go.mod` asks for, so the toolchain
-downloads a matching one on the first build. Setting a `GO_VERSION` build
-variable to the version in `go.mod` skips that download.
+`go.mod` names the Go version the build image already has, so no build
+downloads a toolchain before it can start. That is what pins the dependencies
+too: the newest Chroma wants a newer Go than the image ships, so this tracks
+the last release that does not.
 
 ## What this site does not do
 
