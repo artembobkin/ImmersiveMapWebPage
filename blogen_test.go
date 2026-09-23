@@ -176,6 +176,7 @@ func TestBuild(t *testing.T) {
 		"articles/index.html", "articles/index.json", "articles/feed.xml",
 		"articles/morphing-a-globe/index.html",
 		"tutorials/index.html", "tutorials/first-steps/index.html",
+		"404.html",
 	} {
 		if _, err := os.Stat(filepath.Join(out, p)); err != nil {
 			t.Errorf("missing artefact %s", p)
@@ -303,6 +304,22 @@ func TestBuild(t *testing.T) {
 			if !strings.Contains(page, want) {
 				t.Errorf("tutorial page is missing %s", want)
 			}
+		}
+	})
+
+	// The 404 page answers for addresses that are not its own, so a canonical
+	// link or a sitemap entry would point search engines at a page that is only
+	// ever a stand-in.
+	t.Run("the_404_page_claims_no_url", func(t *testing.T) {
+		page := readString(t, filepath.Join(out, "404.html"))
+		if !strings.Contains(page, `name="robots" content="noindex"`) {
+			t.Error("404 page is not marked noindex")
+		}
+		if strings.Contains(page, `rel="canonical"`) {
+			t.Error("404 page carries a canonical link")
+		}
+		if sitemap := readString(t, filepath.Join(out, "sitemap.xml")); strings.Contains(sitemap, "404") {
+			t.Error("sitemap lists the 404 page")
 		}
 	})
 

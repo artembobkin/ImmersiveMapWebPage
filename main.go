@@ -41,9 +41,9 @@ type Site struct {
 
 // stylesheets are the CSS files a page can inline, read once per build.
 //
-// Linking them from /assets/ is not an option (see the comment at the top of
-// theme.css: Caddy serves that path immutable for a year), so whatever a page
-// carries, it carries in full. That is why they are handed out per page rather
+// Linking them from /assets/ is not an option (that path is served immutable
+// for a year — see site/root/_headers), so whatever a page carries, it carries
+// in full. That is why they are handed out per page rather
 // than concatenated once: the landing page's hero and quick start are ten
 // kilobytes that no article has any use for, and Chroma's palette is thirteen
 // that a page without a code block never reads.
@@ -202,8 +202,8 @@ func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool
 		return err
 	}
 	// Files the host reads from the root of the output rather than the site
-	// itself: _headers, which is how Cloudflare Pages is told the cache policy
-	// per path. Optional, so a checkout without the directory still builds.
+	// itself: _headers, which is how the cache policy per path is declared.
+	// Optional, so a checkout without the directory still builds.
 	if err := copyTreeIfPresent(filepath.Join(siteDir, "root"), outDir); err != nil {
 		return err
 	}
@@ -234,6 +234,13 @@ func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool
 		if err := b.renderTutorial(tutorials[i]); err != nil {
 			return fmt.Errorf("rendering tutorial %s: %w", tutorials[i].Slug, err)
 		}
+	}
+	// Served for any address that matches nothing, so it is a page like the
+	// others but has no URL of its own: out of the sitemap, and noindex in the
+	// template. The host is told to use it by not_found_handling in
+	// wrangler.jsonc; anything else serving this output wants the same setting.
+	if err := b.render("404.html.tmpl", "404.html", b.page("404", b.css.pages)); err != nil {
+		return err
 	}
 	if err := renderFeed(tmplDir, outDir, b.site, articles); err != nil {
 		return err

@@ -12,6 +12,10 @@
 
     // Directory-style URLs: /articles/ is served from articles/index.html, and
     // a request for /articles is redirected to it rather than 404ing.
-    "html_handling": "auto-trailing-slash"
+    "html_handling": "auto-trailing-slash",
+
+    // Anything that matches no file gets 404.html, with a 404 status, rather
+    // than an empty response from the edge.
+    "not_found_handling": "404-page"
   }
 }

@@ -1,0 +1,23 @@
+{{define "head" -}}
+<title>Page not found · ImmersiveMap</title>
+<meta name="description" content="That page is not here. The ImmersiveMap landing page, articles and tutorials are." />
+<!-- No canonical: this page stands in for whatever URL was asked for, so it has
+     no address of its own to point at. Out of the sitemap for the same reason,
+     and told not to be indexed under any of them. -->
+<meta name="robots" content="noindex" />
+{{- end}}
+
+{{define "content" -}}
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">Error 404</p>
+    <h1>This page is not here.</h1>
+    <p class="lede">The link may be old, or the address may have a typo in it. Everything the site has is one of these.</p>
+    <div class="notfound-links">
+      <a class="btn btn-primary" href="/">Landing page</a>
+      <a class="btn btn-ghost" href="/articles/">Articles</a>
+      <a class="btn btn-ghost" href="/tutorials/">Tutorials</a>
+    </div>
+  </div>
+</section>
+{{- end}}

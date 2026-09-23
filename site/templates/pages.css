@@ -137,3 +137,8 @@
    push the track wider. This is what actually enforces the scroll. */
 .post-body pre, .post-body table, .tut-embed { max-width: 100%; min-width: 0; }
 .post-card, .tut-card { min-width: 0; }
+
+/* ---- 404 ---- */
+/* The row of ways out. Wraps to a column on a narrow screen rather than
+   shrinking the buttons, which are already at their minimum tap size. */
+.notfound-links { display: flex; flex-wrap: wrap; gap: .8rem; margin: 1.6rem 0 0; }
