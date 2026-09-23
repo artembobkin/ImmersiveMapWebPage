@@ -42,10 +42,23 @@ by hand; regenerate it with `make code-css`.
 
 ## Deployment
 
-Cloudflare Pages, with `make site` as the build command and `dist` as the output
-directory. `site/root/_headers` rides along into the output and sets the cache
-policy: a year and `immutable` for `/assets/*`, five minutes for the pages, and
-the RSS content type for the feed.
+Cloudflare Workers with static assets, wired to this repository. The build
+command is
+
+```sh
+go run . -content articles -tutorials tutorials -site site -out dist -base-url https://immersivemap.dev
+```
+
+and the deploy command is `npx wrangler deploy`, which reads `wrangler.jsonc`
+and uploads `dist/` — there is no Worker script, only files.
+
+`site/root/_headers` rides along into the output, where Workers reads it as
+configuration rather than serving it: a year and `immutable` for `/assets/*`,
+five minutes for the pages, and the RSS content type for the feed.
+
+The build image ships an older Go than `go.mod` asks for, so the toolchain
+downloads a matching one on the first build. Setting a `GO_VERSION` build
+variable to the version in `go.mod` skips that download.
 
 ## What this site does not do
 
