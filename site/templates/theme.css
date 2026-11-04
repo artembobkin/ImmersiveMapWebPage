@@ -226,7 +226,7 @@ footer.site { border-top: 1px solid var(--line); padding: 2.4rem 0; margin-top: 
   .nav-links {
     width: 100%; margin-left: 0; justify-content: space-between; gap: 0 .5rem; flex-wrap: wrap;
   }
-  /* Three links and the toggle fit one phone-width row. The GitHub link gives
+  /* Two links and the toggle fit one phone-width row. The GitHub link gives
      way all the same: the footer has it, and the README under it links there
      in every section. */
   .nav-links a[href^="https://github.com"] { display: none; }

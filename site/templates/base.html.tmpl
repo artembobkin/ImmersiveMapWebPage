@@ -23,11 +23,12 @@
     </a>
     <nav class="nav-links">
       <!-- The landing page is the README, so nothing here points into it: its
-           headings are GitHub's to rename. Articles and Tutorials are back in
-           the header because the README does not link to them, and without a
-           link here they would be reachable by URL alone. -->
+           headings are GitHub's to rename. Articles are in the header because
+           the README does not link to them, and without a link here they would
+           be reachable by URL alone. Tutorials are not linked: the section
+           still builds and is reachable at /tutorials/, it is just not in the
+           chrome. -->
       <a href="/articles/"{{if eq .Section "articles"}} aria-current="page"{{end}}>Articles</a>
-      <a href="/tutorials/"{{if eq .Section "tutorials"}} aria-current="page"{{end}}>Tutorials</a>
       <a href="https://github.com/artembobkin/ImmersiveMap">GitHub</a>
       <button class="icon-btn" id="themeToggle" aria-label="Toggle color theme" title="Toggle theme">
         <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
@@ -45,8 +46,8 @@
     <span>© 2025–{{.Site.Year}} Artem Bobkin · MIT License</span>
     <div class="foot-links">
       <!-- Articles, Tutorials and RSS are not linked here either: the pages and
-           the feed still exist and are reachable by URL (and the tutorials
-           from the quick start), they are just not in the chrome for now. -->
+           the feed still exist and are reachable by URL, they are just not in
+           the chrome for now. -->
       <a href="/">Home</a>
       <a href="https://github.com/artembobkin/ImmersiveMap">GitHub</a>
       <!-- Getting in touch happens on GitHub: the issue tracker is where a bug
