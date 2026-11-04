@@ -1,6 +1,6 @@
 {{define "head" -}}
 <title>ImmersiveMap · Swift + Metal map engine for SwiftUI with a 3D globe</title>
-<meta name="description" content="ImmersiveMap is an open-source native Swift and Metal vector-tile map engine for SwiftUI. A real 3D globe that morphs to a flat map, vector tiles, labels, a starfield and avatar markers, with no web view, on iOS and macOS." />
+<meta name="description" content="{{.Description}}" />
 <link rel="canonical" href="{{.Site.BaseURL}}/" />
 <meta name="keywords" content="SwiftUI map, Metal map engine, MapKit alternative, Mapbox alternative iOS, vector tiles Swift, 3D globe SwiftUI, iOS map SDK, macOS map" />
 
@@ -8,254 +8,29 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="ImmersiveMap" />
 <meta property="og:title" content="ImmersiveMap · a native Swift + Metal map engine for SwiftUI" />
-<meta property="og:description" content="A real 3D globe, vector tiles, labels and a starfield, rendered natively in Metal with no web view. Open source (MIT), iOS & macOS." />
+<meta property="og:description" content="{{.Description}}" />
 <meta property="og:url" content="{{.Site.BaseURL}}/" />
 <meta property="og:image" content="{{.Site.BaseURL}}/assets/og-cover.png" />
 <meta property="og:image:width" content="1280" />
 <meta property="og:image:height" content="640" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="ImmersiveMap · a native Swift + Metal map engine for SwiftUI" />
-<meta name="twitter:description" content="A real 3D globe, vector tiles, labels and a starfield, rendered natively in Metal with no web view. Open source (MIT)." />
+<meta name="twitter:description" content="{{.Description}}" />
 <meta name="twitter:image" content="{{.Site.BaseURL}}/assets/og-cover.png" />
 
 <script type="application/ld+json">{{.JSONLD}}</script>
 {{- end}}
 
-{{define "body-top" -}}
-<canvas id="stars" aria-hidden="true"></canvas>
-{{- end}}
-
 {{define "content" -}}
-  <section class="hero">
-    <div class="wrap">
-      <a class="free-badge" href="https://github.com/artembobkin/ImmersiveMap">
-        <span class="pip" aria-hidden="true"></span>
-        <b>Free</b>
-        <span class="divider" aria-hidden="true">·</span>
-        <span>Open source</span>
-        <span class="divider" aria-hidden="true">·</span>
-        <span class="quiet">MIT</span>
-      </a>
-
-      <h1>A real 3D globe, rendered natively in <em>Metal</em>.</h1>
-
-      <div class="badges" aria-label="Project facts">
-        <span class="badge"><span class="k">platforms</span><span class="v">iOS 18 · macOS 15</span></span>
-        <span class="badge"><span class="k">language</span><span class="v">Swift 6 · SwiftUI</span></span>
-        <span class="badge"><span class="k">rendering</span><span class="v">Metal</span></span>
-        <a class="badge badge-link" href="https://github.com/artembobkin/ImmersiveMap" aria-label="View source on GitHub"><span class="k">source</span><span class="v"><svg class="gh" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49l-.01-1.9c-2.78.62-3.37-1.2-3.37-1.2-.45-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.34 9.34 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"/></svg>GitHub</span></a>
-      </div>
-
-      <p class="lede">ImmersiveMap is an open-source Swift&nbsp;+&nbsp;Metal map engine for SwiftUI. It renders a real 3D globe that morphs into a flat map, with vector tiles, labels, a starfield and live avatar markers, natively on iOS and macOS. No web view.</p>
-
-      <div class="stage">
-        <div class="window">
-          <div class="window-bar" aria-hidden="true">
-            <span class="tl"></span><span class="tl"></span><span class="tl"></span>
-            <span class="title">ImmersiveMap · renders</span>
-          </div>
-          <!-- Frames rendered by the engine itself (Tools/VisualReview in the
-               engine repository), the same pictures the README opens with. -->
-          <div class="shots">
-            <img src="/assets/shots/manhattan.jpg" alt="Manhattan with 3D buildings and shadows" loading="eager">
-            <img src="/assets/shots/chicago.jpg" alt="The Chicago Loop under a tilted camera" loading="eager">
-            <img src="/assets/shots/berlin-night.jpg" alt="Berlin Mitte in the dark palette" loading="lazy">
-            <img src="/assets/shots/berlin.jpg" alt="Berlin Mitte from a tilted camera" loading="lazy">
-            <img src="/assets/shots/avatars-shibuya.jpg" alt="Avatar markers with badges over Shibuya" loading="lazy">
-            <img src="/assets/shots/scene-models-paris.jpg" alt="A 3D scene model by the Eiffel Tower" loading="lazy">
-            <img src="/assets/shots/globe.jpg" alt="The globe with the atmosphere and stars" loading="lazy">
-            <img src="/assets/shots/bolshoi-proezd.jpg" alt="The Bolshoi Theatre over the measured streetscape" loading="lazy">
-          </div>
-        </div>
-      </div>
-
-      <div class="cta">
-        <a class="btn btn-primary" href="https://github.com/artembobkin/ImmersiveMap">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49l-.01-1.9c-2.78.62-3.37-1.2-3.37-1.2-.45-1.18-1.11-1.5-1.11-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.34 9.34 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.79-4.57 5.05.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"/></svg>
-          View the project on GitHub
-        </a>
-        <!-- Two different questions, so two different places. A bug in the
-             engine belongs in the open, where the next person to hit it can
-             find the answer; anything else reaches me directly. -->
-        <p class="hint">Everything lives on GitHub: source code, documentation and releases. Found a bug? <a href="https://github.com/artembobkin/ImmersiveMap/issues">Open an issue</a> and I'll get back to you.</p>
-      </div>
+<!-- The landing page is the engine's README (landing/README.md, kept in step
+     with GitHub by the follow-readme workflow), rendered at build time by
+     readme.go. Nothing of it is written here: change the README on GitHub,
+     and the page follows. -->
+<article class="post readme">
+  <div class="wrap-narrow">
+    <div class="post-body">
+{{.Readme}}
     </div>
-  </section>
-
-  <section class="quickstart" id="quick-start">
-    <div class="wrap">
-      <h2>Quick start</h2>
-      <!-- The snippet carries the real tile URL rather than hiding it behind a
-           "built-in provider", because the URL is the product: it is what this
-           site serves, and seeing it is what makes the integration obvious. -->
-      <p class="sub">Two steps to a map on screen. Point the engine at our tile servers, and that is the integration. The tiles are public: no key and no sign-up.</p>
-
-      <div class="qs-grid">
-        <div class="qs-card">
-          <div class="qs-step"><span class="n">1</span> Add the package</div>
-          <div class="qs-url">
-            <code id="pkgUrl">https://github.com/artembobkin/ImmersiveMap.git</code>
-            <button class="copy-btn" id="copyPkg" type="button">Copy</button>
-          </div>
-          <p class="qs-hint">In Xcode: <b>File → Add Package Dependencies…</b>, paste the URL, then add the <b>ImmersiveMap</b> library to your app target.</p>
-        </div>
-
-        <div class="qs-card">
-          <div class="qs-step"><span class="n">2</span> Drop it into a view</div>
-<pre class="qs-pre"><code><span class="k">import</span> SwiftUI
-<span class="k">import</span> ImmersiveMap
-
-<span class="k">struct</span> <span class="t">ContentView</span>: <span class="t">View</span> {
-    <span class="k">var</span> body: <span class="k">some</span> <span class="t">View</span> {
-        <span class="t">ImmersiveMapView</span>()
-            .<span class="f">tileURLTemplate</span>(<span class="s">"https://immersivemap.dev/tiles/{z}/{x}/{y}.mvt"</span>)
-            .<span class="f">ignoresSafeArea</span>()
-    }
-}</code></pre>
-          <p class="qs-hint">It renders on iOS and macOS from the same SwiftUI code. The URL above is the whole integration: the planet, z0 to z16, refreshed from OpenStreetMap by our own pipeline.</p>
-        </div>
-      </div>
-
-      <p class="qs-req">
-        <span>Swift 6 · Xcode 16 · iOS 18 · macOS 15</span>
-        <a href="/tutorials/">Watch the tutorials →</a>
-        <a href="https://github.com/artembobkin/ImmersiveMap#readme">Read the docs →</a>
-      </p>
-    </div>
-  </section>
-
-  <!-- Partners.
-       No list of what a partner gets and no list of what is asked in return.
-       Both used to be here, and every line of them was a promise this side of
-       the site cannot keep on its own: a slot count that has to be edited by
-       hand, "free for 12 months" that nothing enforces, "priority fixes" and
-       "influence on the roadmap" that one person cannot guarantee to anyone.
-       What is left is the only thing that is true of every early account:
-       we would like to hear from you, and the account is where that happens. -->
-  <section class="partners" id="partners">
-    <div class="wrap">
-      <div class="partner-panel">
-        <h2>Early Partner Program</h2>
-        <p class="sub">For the teams building their map on ImmersiveMap first.</p>
-        <p class="lede-sm">If you are building on ImmersiveMap while it is still early, we would love to work with you. No terms and no conditions, just a conversation.</p>
-
-        <!-- Two cards, and neither is a list of obligations. The left one says
-             what we would be glad of, the right one how a conversation starts. -->
-        <div class="partner-grid">
-          <div class="partner-card">
-            <div class="qs-step">
-              <span class="n" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-              What we would love
-            </div>
-            <ul class="partner-list">
-              <li><b>Your app on ImmersiveMap</b>: a real map, in production, used by real people</li>
-              <li><b>Honest feedback</b>: where the engine shines and where it falls short on your data</li>
-              <li><b>A story worth telling</b>: how the integration went, in your words, if you are up for it</li>
-            </ul>
-          </div>
-
-          <div class="partner-card">
-            <div class="qs-step">
-              <span class="n" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>
-              How it starts
-            </div>
-            <ul class="partner-list">
-              <li><b>Open an issue and say hello</b>: what you are building and where you are with it</li>
-              <li><b>Talk it through</b>: questions, ideas and rough edges, in the open on GitHub</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="partner-cta">
-          <!-- GitHub rather than a message box: the site is static, so the
-               tracker is where the conversation goes. -->
-          <a class="btn btn-primary" href="https://github.com/artembobkin/ImmersiveMap/issues">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Start the conversation
-          </a>
-          <p class="partner-note">Nothing to apply for and no waiting list. Open an issue and tell us what you are building.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-{{- end}}
-
-{{define "scripts" -}}
-<script>
-(function () {
-  var root = document.documentElement;
-
-  /* copy the package URL from the quick start */
-  var copyBtn = document.getElementById("copyPkg");
-  if (copyBtn && navigator.clipboard) {
-    copyBtn.addEventListener("click", function () {
-      navigator.clipboard.writeText(document.getElementById("pkgUrl").textContent).then(function () {
-        copyBtn.textContent = "Copied";
-        setTimeout(function () { copyBtn.textContent = "Copy"; }, 1300);
-      });
-    });
-  }
-
-  /* starfield: only on dark ground, respects reduced motion */
-  var canvas = document.getElementById("stars");
-  var ctx = canvas.getContext("2d");
-  var stars = [], raf = null, w = 0, h = 0;
-  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  function effectiveDark() {
-    var t = root.getAttribute("data-theme");
-    if (t) return t === "dark";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  }
-  function starColor() {
-    return getComputedStyle(root).getPropertyValue("--star").trim() || "rgba(210,226,250,0.9)";
-  }
-  function resize() {
-    w = canvas.width = Math.floor(innerWidth * Math.min(devicePixelRatio, 2));
-    h = canvas.height = Math.floor(innerHeight * Math.min(devicePixelRatio, 2));
-    canvas.style.width = innerWidth + "px";
-    canvas.style.height = innerHeight + "px";
-    var count = Math.min(150, Math.floor(innerWidth * innerHeight / 9000));
-    stars = [];
-    for (var i = 0; i < count; i++) {
-      stars.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.3 + 0.2, a: Math.random(), s: Math.random() * 0.02 + 0.004 });
-    }
-  }
-  function drawStars() {
-    if (raf) { cancelAnimationFrame(raf); raf = null; }
-    ctx.clearRect(0, 0, w, h);
-    if (!effectiveDark()) return;
-    var col = starColor();
-    if (reduce) {
-      for (var i = 0; i < stars.length; i++) {
-        var st = stars[i];
-        ctx.globalAlpha = 0.35 + st.a * 0.5;
-        ctx.fillStyle = col; ctx.beginPath(); ctx.arc(st.x, st.y, st.r, 0, 6.283); ctx.fill();
-      }
-      ctx.globalAlpha = 1; return;
-    }
-    (function tick() {
-      ctx.clearRect(0, 0, w, h);
-      for (var i = 0; i < stars.length; i++) {
-        var st = stars[i];
-        st.a += st.s; var tw = 0.35 + (Math.sin(st.a) * 0.5 + 0.5) * 0.6;
-        ctx.globalAlpha = tw; ctx.fillStyle = col;
-        ctx.beginPath(); ctx.arc(st.x, st.y, st.r, 0, 6.283); ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      raf = requestAnimationFrame(tick);
-    })();
-  }
-
-  var rt;
-  addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { resize(); drawStars(); }, 150); });
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawStars);
-  /* The starfield watches the theme rather than being called when it changes.
-     The toggle lives in the shared shell, which must not know that one page out
-     of seven draws stars; and watching catches every way the attribute can
-     move, not just that one click handler. */
-  new MutationObserver(drawStars).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
-  resize(); drawStars();
-})();
-</script>
+  </div>
+</article>
 {{- end}}

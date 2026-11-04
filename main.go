@@ -49,9 +49,9 @@ type Site struct {
 // that a page without a code block never reads.
 type stylesheets struct {
 	theme template.CSS // tokens, nav, footer, buttons; every page
-	pages template.CSS // components of the generated pages; everything but /
+	pages template.CSS // components of the generated pages, the prose rules included
 	code  template.CSS // Chroma; pages that render a code block
-	home  template.CSS // the landing page's own sections
+	home  template.CSS // what the README needs on top of the prose rules; / only
 }
 
 func loadStyles(tmplDir string) (stylesheets, error) {
@@ -96,14 +96,17 @@ type Article struct {
 }
 
 type pageData struct {
-	Site      Site
-	Section   string         // "home", "articles", …; drives the nav highlight
-	Styles    []template.CSS // inlined in order by base.html.tmpl
-	JSONLD    template.JS    // structured data for pages without an Article
-	Articles  []Article
-	Article   *Article
-	Tutorials []Article
-	Tutorial  *Article
+	Site     Site
+	Section  string         // "home", "articles", …; drives the nav highlight
+	Styles   []template.CSS // inlined in order by base.html.tmpl
+	JSONLD   template.JS    // structured data for pages without an Article
+	Articles []Article
+	// The landing page only: the rendered README and what is derived from it.
+	Readme      template.HTML
+	Description string
+	Article     *Article
+	Tutorials   []Article
+	Tutorial    *Article
 }
 
 // builder carries what every render step shares. It exists so the helpers stop
@@ -158,6 +161,9 @@ func main() {
 		baseURL     = flag.String("base-url", "https://immersivemap.dev", "absolute site root, no trailing slash")
 		emitCSS     = flag.Bool("emit-code-css", false, "print the syntax-highlighting stylesheet and exit")
 		includeDraf = flag.Bool("drafts", false, "also publish articles marked draft: true")
+		readmePath  = flag.String("readme", "landing/README.md", "the README that is the landing page")
+		repo        = flag.String("repo", "artembobkin/ImmersiveMap", "GitHub repository the README's relative links point into")
+		branch      = flag.String("branch", "main", "branch of -repo they point into")
 	)
 	flag.Parse()
 
@@ -167,12 +173,13 @@ func main() {
 		}
 		return
 	}
-	if err := build(*contentDir, *tutorialDir, *siteDir, *outDir, strings.TrimRight(*baseURL, "/"), *includeDraf); err != nil {
+	rs := readmeSource{Path: *readmePath, Repo: *repo, Branch: *branch}
+	if err := build(*contentDir, *tutorialDir, *siteDir, *outDir, strings.TrimRight(*baseURL, "/"), *includeDraf, rs); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool) error {
+func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool, rs readmeSource) error {
 	tmplDir := filepath.Join(siteDir, "templates")
 
 	css, err := loadStyles(tmplDir)
@@ -194,6 +201,16 @@ func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool
 	if err != nil {
 		return err
 	}
+	// Before the output is touched: if the README cannot be read, the build
+	// stops here with the previous output intact.
+	readmeSrc, err := loadReadme(rs)
+	if err != nil {
+		return err
+	}
+	rm, err := renderReadme(newMarkdown(), readmeSrc, rs)
+	if err != nil {
+		return err
+	}
 
 	if err := resetOutput(outDir, siteDir); err != nil {
 		return err
@@ -208,12 +225,15 @@ func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool
 		return err
 	}
 
-	// The landing page goes through the same shell as everything else. It used
-	// to be a hand-written file copied in verbatim, which meant a second copy of
-	// the nav, the footer, the design tokens and the theme script; they drifted,
-	// and the nav ended up with two links no other page had.
-	home := b.page("home", b.css.home)
-	if home.JSONLD, err = softwareApplicationJSONLD(baseURL); err != nil {
+	// The landing page is the engine's README, through the same shell as
+	// everything else. It used to be a hand-written page of its own, which
+	// meant a second telling of what the README already says; the two drifted,
+	// and keeping them in step was work nobody wanted. Now there is one text,
+	// kept on GitHub, and this page follows it.
+	home := b.page("home", b.css.pages, b.css.code, b.css.home)
+	home.Readme = rm.HTML
+	home.Description = rm.Description
+	if home.JSONLD, err = softwareApplicationJSONLD(baseURL, rm.Description); err != nil {
 		return err
 	}
 	if err := b.render("home.html.tmpl", "index.html", home); err != nil {
@@ -255,7 +275,7 @@ func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool
 		return err
 	}
 
-	log.Printf("built %d article(s) and %d tutorial(s) into %s", len(articles), len(tutorials), outDir)
+	log.Printf("built the README, %d article(s) and %d tutorial(s) into %s", len(articles), len(tutorials), outDir)
 	return nil
 }
 
@@ -401,7 +421,7 @@ func videoObjectJSONLD(a Article) (template.JS, error) {
 // {{.Site.BaseURL}} placed inside it comes back as "https:\/\/…", which is legal
 // JSON but not something anyone wants to meet in view-source. An ordered struct
 // rather than a map, so the field order stays the one a human chose.
-func softwareApplicationJSONLD(baseURL string) (template.JS, error) {
+func softwareApplicationJSONLD(baseURL, description string) (template.JS, error) {
 	type offer struct {
 		Type     string `json:"@type"`
 		Price    string `json:"price"`
@@ -423,7 +443,7 @@ func softwareApplicationJSONLD(baseURL string) (template.JS, error) {
 		Name:        "ImmersiveMap",
 		Category:    "DeveloperApplication",
 		OS:          "iOS 18, macOS 15",
-		Description: "Open-source native Swift + Metal vector-tile map engine for SwiftUI with a 3D globe, vector tiles, labels, a starfield and avatar markers.",
+		Description: description,
 		URL:         baseURL + "/",
 		License:     "https://opensource.org/licenses/MIT",
 		Offers:      offer{Type: "Offer", Price: "0", Currency: "USD"},
@@ -437,7 +457,8 @@ func softwareApplicationJSONLD(baseURL string) (template.JS, error) {
 
 // The listing pages carry no code, so they stop at pages.css; the entry pages
 // render Markdown that may contain a highlighted block, so they take Chroma's
-// palette too.
+// palette too. The landing page is rendered Markdown as well (the README), so
+// it takes the same two and its own sheet on top.
 
 func (b *builder) renderIndex(articles []Article) error {
 	d := b.page("articles", b.css.pages)

@@ -6,7 +6,7 @@
 
    This is the only place tokens are defined. The landing page used to keep its
    own copy and they drifted; it now takes this file like every other page, and
-   its own sections live in home.css. */
+   what the README needs on top lives in home.css. */
 
 :root {
   color-scheme: light dark;
@@ -102,8 +102,8 @@ img, video { max-width: 100%; display: block; }
 
 /* ---- nav ----
    --header-h is the sticky header's own height, kept as a token because anchor
-   targets need it: without a scroll margin, jumping to /#partners lands the
-   heading underneath the header rather than below it. */
+   targets need it: without a scroll margin, jumping to a heading lands it
+   underneath the header rather than below it. */
 :root { --header-h: 61px; }
 header.nav {
   position: sticky; top: 0; z-index: 50;
@@ -190,8 +190,8 @@ header.nav {
 }
 
 
-/* Shared by the dashboard's key card and the landing page's quick start, which
-   is why it is here and the row around it (.qs-url) is in home.css. */
+/* Was shared by the dashboard's key card and the landing page's quick start;
+   neither page exists any more, and the class stays for an article to use. */
 .copy-btn {
   flex-shrink: 0; font-family: var(--mono); font-size: .7rem; font-weight: 600;
   padding: .45rem .7rem; border-radius: 7px; cursor: pointer;
@@ -226,15 +226,10 @@ footer.site { border-top: 1px solid var(--line); padding: 2.4rem 0; margin-top: 
   .nav-links {
     width: 100%; margin-left: 0; justify-content: space-between; gap: 0 .5rem; flex-wrap: wrap;
   }
-  /* Six links do not fit one phone-width row, and a second row would add 50px to
-     a header that is sticky on every screen. The "Quick start" anchor gives way:
-     it points at a section of the landing page, which is one tap on the logo. */
-  /* Six links do not fit one phone-width row, and the sign-out button costs
-     another 34px on top. The landing-page anchors give way first (both are one
-     tap on the logo), then the label on the button, then the length of the
-     account name. Measured at 390px: what is left comes to ~334px in a 343px
-     row, so the toggle stays on the links line instead of orphaning below it. */
-  .nav-links a[href="/#quick-start"], .nav-links a[href="/#partners"] { display: none; }
+  /* Three links and the toggle fit one phone-width row. The GitHub link gives
+     way all the same: the footer has it, and the README under it links there
+     in every section. */
+  .nav-links a[href^="https://github.com"] { display: none; }
   .nav-links a { font-size: .78rem; padding: .6rem 0; }
   .nav-links { gap: 0 .4rem; }
   .icon-btn { width: 38px; height: 38px; }

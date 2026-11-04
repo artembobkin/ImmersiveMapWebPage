@@ -59,6 +59,37 @@ Body text with ` + "`code`" + ` in it.
 ` + "```swift\nlet x = 1\n```" + `
 `
 
+// goodReadme stands in for the engine's README: the title, the badge row, a
+// paragraph of prose, GitHub-style gallery markup with relative image paths,
+// relative and absolute links, and a code block.
+const goodReadme = `# ImmersiveMap
+
+[![CI](https://example.org/ci.svg)](https://example.org/ci) [![License](https://example.org/l.svg)](LICENSE)
+
+ImmersiveMap is a **pure Swift + Metal map** engine for [SwiftUI](https://developer.apple.com/swiftui/) apps.
+
+<p align="center">
+  <img src="Assets/readme-globe.png" width="49%" alt="The globe">
+  <img src="./Assets/readme-city.png" width="49%" alt="A city">
+</p>
+
+## Quick Start
+
+` + "```swift\nimport ImmersiveMap\n```" + `
+
+![diagram](docs/pipeline.png)
+
+See [LICENSE](LICENSE), [the sources](/Sources/Map.swift), [the start](#quick-start) and [the tracker](https://github.com/o/r/issues).
+`
+
+// testReadme writes goodReadme into dir and returns the source that reads it
+// from there, so the tests never touch the network.
+func testReadme(t *testing.T, dir string) readmeSource {
+	t.Helper()
+	writeFile(t, dir, "README.md", goodReadme)
+	return readmeSource{Path: filepath.Join(dir, "README.md"), Repo: "o/r", Branch: "main"}
+}
+
 // TestParseMeta pins the front matter subset the generator accepts, and that a
 // file missing anything required fails the build instead of publishing.
 func TestParseMeta(t *testing.T) {
@@ -166,8 +197,9 @@ func TestBuild(t *testing.T) {
 	writeFile(t, content, "morphing-a-globe.md", goodArticle)
 	writeFile(t, content, "hidden.md", "---\ntitle: T\ndate: 2026-01-01\ndescription: D\ndraft: true\n---\n")
 	writeFile(t, tutorials, "first-steps.md", "---\ntitle: First steps\ndate: 2026-08-01\ndescription: D\nvideo: abc123\n---\n")
+	rs := testReadme(t, dir)
 
-	if err := build(content, tutorials, siteDir, out, "https://example.com", false); err != nil {
+	if err := build(content, tutorials, siteDir, out, "https://example.com", false, rs); err != nil {
 		t.Fatalf("build: %v", err)
 	}
 
@@ -217,18 +249,40 @@ func TestBuild(t *testing.T) {
 		t.Logf("shared nav: %v", want)
 	})
 
-	t.Run("landing_page_is_rendered_not_copied", func(t *testing.T) {
+	// The landing page is the README, rendered through the shell: nothing on it
+	// is written in this repository except the chrome around it.
+	t.Run("landing_page_is_the_readme", func(t *testing.T) {
 		page := readString(t, filepath.Join(out, "index.html"))
 		for _, want := range []string{
 			// The test base URL, so these can only come from the template.
 			`<link rel="canonical" href="https://example.com/"`,
 			`"url": "https://example.com/"`, // and unescaped: ld+json is a JS context
 			`"@type": "SoftwareApplication"`,
-			`id="stars"`,
-			`href="/#partners"`,
+			`<h1 id="immersivemap">ImmersiveMap</h1>`,
+			`class="post-body"`,
+			`class="chroma"`, // the README's code block, highlighted at build time
+			// Relative paths now point at the repository: images at the raw
+			// file, links at the file's page on GitHub.
+			`src="https://raw.githubusercontent.com/o/r/main/Assets/readme-globe.png"`,
+			`src="https://raw.githubusercontent.com/o/r/main/Assets/readme-city.png"`,
+			`src="https://raw.githubusercontent.com/o/r/main/docs/pipeline.png"`,
+			`href="https://github.com/o/r/blob/main/LICENSE"`,
+			`href="https://github.com/o/r/blob/main/Sources/Map.swift"`,
+			`href="#quick-start"`,
+			`href="https://github.com/o/r/issues"`,
+			`<img loading="lazy" src="https://raw.githubusercontent.com/o/r/main/Assets/readme-globe.png" width="49%"`,
+			// The first paragraph, as text, is the description everywhere. In an
+			// attribute html/template writes the plus sign as an entity.
+			`<meta name="description" content="ImmersiveMap is a pure Swift &#43; Metal map engine for SwiftUI apps." />`,
+			`"description": "ImmersiveMap is a pure Swift + Metal map engine for SwiftUI apps."`,
 		} {
 			if !strings.Contains(page, want) {
 				t.Errorf("landing page is missing %s", want)
+			}
+		}
+		for _, stale := range []string{`id="stars"`, `href="/#partners"`, `class="hero"`} {
+			if strings.Contains(page, stale) {
+				t.Errorf("landing page still carries %s from the hand-written page", stale)
 			}
 		}
 	})
@@ -239,10 +293,11 @@ func TestBuild(t *testing.T) {
 		for _, c := range []struct {
 			page, want, notWant string
 		}{
-			{"index.html", ".hero", ".chroma"},                           // no code block on /
-			{"index.html", ".partner-panel", ".post-card"},               // no page components either
-			{"articles/index.html", ".post-card", ".chroma"},             // a listing has no code
-			{"articles/morphing-a-globe/index.html", ".chroma", ".hero"}, // …but an article does
+			{"index.html", ".readme .post-body", "#stars"},                 // the README's own rules, not the old hero's
+			{"index.html", ".chroma", ".hero"},                             // and Chroma, for its code block
+			{"articles/index.html", ".post-card", ".chroma"},               // a listing has no code
+			{"articles/index.html", ".post-card", ".readme"},               // and is not the README
+			{"articles/morphing-a-globe/index.html", ".chroma", ".readme"}, // an article has code, no README rules
 		} {
 			page := readString(t, filepath.Join(out, c.page))
 			if !strings.Contains(page, c.want) {
@@ -289,7 +344,7 @@ func TestBuild(t *testing.T) {
 			`<link rel="canonical" href="https://example.com/articles/morphing-a-globe/"`,
 			`property="og:title"`,
 			`"@type": "BlogPosting"`,
-			`class="chroma"`, // code was highlighted at build time
+			`class="chroma"`,    // code was highlighted at build time
 			`class="post-body"`, // the rendered Markdown itself
 		} {
 			if !strings.Contains(page, want) {
@@ -346,7 +401,7 @@ func TestBuild(t *testing.T) {
 		if err := os.Remove(filepath.Join(content, "morphing-a-globe.md")); err != nil {
 			t.Fatal(err)
 		}
-		if err := build(content, tutorials, siteDir, out, "https://example.com", false); err != nil {
+		if err := build(content, tutorials, siteDir, out, "https://example.com", false, rs); err != nil {
 			t.Fatal(err)
 		}
 		if _, err := os.Stat(filepath.Join(out, "articles", "morphing-a-globe")); err == nil {
@@ -362,7 +417,7 @@ func TestBuildRejectsBadSlugs(t *testing.T) {
 		dir := t.TempDir()
 		content := filepath.Join(dir, "articles")
 		writeFile(t, content, name, goodArticle)
-		err := build(content, filepath.Join(dir, "none"), siteDir, filepath.Join(dir, "dist"), "https://example.com", false)
+		err := build(content, filepath.Join(dir, "none"), siteDir, filepath.Join(dir, "dist"), "https://example.com", false, testReadme(t, dir))
 		if err == nil {
 			t.Errorf("%s: expected the build to fail", name)
 		}
@@ -375,9 +430,63 @@ func TestTutorialNeedsVideo(t *testing.T) {
 	dir := t.TempDir()
 	tutorials := filepath.Join(dir, "tutorials")
 	writeFile(t, tutorials, "no-video.md", "---\ntitle: T\ndate: 2026-01-01\ndescription: D\n---\n")
-	err := build(filepath.Join(dir, "articles"), tutorials, siteDir, filepath.Join(dir, "dist"), "https://example.com", false)
+	err := build(filepath.Join(dir, "articles"), tutorials, siteDir, filepath.Join(dir, "dist"), "https://example.com", false, testReadme(t, dir))
 	if err == nil || !strings.Contains(err.Error(), "video") {
 		t.Fatalf("err = %v, want a complaint about the missing video id", err)
+	}
+}
+
+// TestBuildNeedsReadme pins that a README that cannot be read is a build
+// error, and one raised before the output is touched: a deploy that failed to
+// get the README must leave the previous site standing, not publish a landing
+// page with nothing on it.
+func TestBuildNeedsReadme(t *testing.T) {
+	dir := t.TempDir()
+	out := filepath.Join(dir, "dist")
+	writeFile(t, out, "sentinel.html", "the previous build")
+	rs := readmeSource{Path: filepath.Join(dir, "missing.md"), Repo: "o/r", Branch: "main"}
+	err := build(filepath.Join(dir, "articles"), filepath.Join(dir, "tutorials"), siteDir, out, "https://example.com", false, rs)
+	if err == nil || !strings.Contains(err.Error(), "README") {
+		t.Fatalf("err = %v, want a complaint about the README", err)
+	}
+	if _, err := os.Stat(filepath.Join(out, "sentinel.html")); err != nil {
+		t.Fatal("the output was wiped although the build had nothing to put there")
+	}
+}
+
+// TestReadmeLinks covers the rewriting of what the README says relative to
+// its repository, and what is left alone.
+func TestReadmeLinks(t *testing.T) {
+	raw, blob := "https://raw.githubusercontent.com/o/r/main/", "https://github.com/o/r/blob/main/"
+	for _, c := range []struct{ in, want string }{
+		{`<img src="Assets/a.png">`, `<img src="` + raw + `Assets/a.png">`},
+		{`<img src="./Assets/a.png">`, `<img src="` + raw + `Assets/a.png">`},
+		{`<img src="/Assets/a.png">`, `<img src="` + raw + `Assets/a.png">`},
+		{`<a href="LICENSE">`, `<a href="` + blob + `LICENSE">`},
+		{`<a href="docs/x.md#part">`, `<a href="` + blob + `docs/x.md#part">`},
+		{`<a href="#quick-start">`, `<a href="#quick-start">`},
+		{`<a href="https://example.org/a?b=1&amp;c=2">`, `<a href="https://example.org/a?b=1&amp;c=2">`},
+		{`<a href="mailto:me@example.org">`, `<a href="mailto:me@example.org">`},
+		{`<a href="//cdn.example.org/x">`, `<a href="//cdn.example.org/x">`},
+		{`<img src="data:image/png;base64,AAAA">`, `<img src="data:image/png;base64,AAAA">`},
+	} {
+		if got := absoluteGitHubLinks(c.in, raw, blob); got != c.want {
+			t.Errorf("absoluteGitHubLinks(%s) = %s, want %s", c.in, got, c.want)
+		}
+	}
+
+	if got := lazyImages(`<img src="a"> <img loading="eager" src="b">`); got != `<img loading="lazy" src="a"> <img loading="eager" src="b">` {
+		t.Errorf("lazyImages = %s", got)
+	}
+
+	for _, c := range []struct{ in, want string }{
+		{goodReadme, "ImmersiveMap is a pure Swift + Metal map engine for SwiftUI apps."},
+		{"# Title\n\n- a list\n\n<p>html</p>\n\nProse at\nlast.\n", "Prose at last."},
+		{"# Title only\n", ""},
+	} {
+		if got := readmeDescription([]byte(c.in)); got != c.want {
+			t.Errorf("readmeDescription(%q) = %q, want %q", c.in, got, c.want)
+		}
 	}
 }
 

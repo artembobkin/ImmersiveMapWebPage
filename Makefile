@@ -7,14 +7,21 @@ OUT      ?= dist
 BASE_URL ?= https://immersivemap.dev
 PORT     ?= 8000
 
-.PHONY: site check serve code-css clean
+# The landing page is the engine's README, read from landing/README.md (kept
+# in step with GitHub by the follow-readme workflow). Point README at another
+# file to preview an edit before it is pushed over there:
+# `make site README=../ImmersiveMap/README.md`.
+README   ?=
+READMEFLAG = $(if $(README),-readme $(README))
 
-site: ## render the landing page, articles and tutorials into $(OUT)
-	go run . -content articles -tutorials tutorials -site site -out $(OUT) -base-url $(BASE_URL)
+.PHONY: site drafts check serve code-css clean
+
+site: ## render the README, the articles and the tutorials into $(OUT)
+	go run . -content articles -tutorials tutorials -site site -out $(OUT) -base-url $(BASE_URL) $(READMEFLAG)
 
 # Drafts are skipped by a normal build, so this is how you look at one.
 drafts: ## same, including articles marked draft: true
-	go run . -content articles -tutorials tutorials -site site -out $(OUT) -base-url $(BASE_URL) -drafts
+	go run . -content articles -tutorials tutorials -site site -out $(OUT) -base-url $(BASE_URL) $(READMEFLAG) -drafts
 
 check:
 	go vet ./...

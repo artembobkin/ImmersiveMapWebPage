@@ -22,14 +22,13 @@
       <span class="wm"><b>Immersive</b>Map</span>
     </a>
     <nav class="nav-links">
-      <!-- The first two point at sections of the landing page. Written absolute
-           so they work from anywhere: from / the path is unchanged, so the
-           browser still treats them as in-page jumps and scrolls smoothly. -->
-      <a href="/#quick-start">Quick start</a>
-      <a href="/#partners">Partners</a>
-      <!-- Articles and Tutorials are deliberately not in the header for now:
-           both still exist and are reachable by URL and from the landing
-           page, they were just noise next to the tabs that matter. -->
+      <!-- The landing page is the README, so nothing here points into it: its
+           headings are GitHub's to rename. Articles and Tutorials are back in
+           the header because the README does not link to them, and without a
+           link here they would be reachable by URL alone. -->
+      <a href="/articles/"{{if eq .Section "articles"}} aria-current="page"{{end}}>Articles</a>
+      <a href="/tutorials/"{{if eq .Section "tutorials"}} aria-current="page"{{end}}>Tutorials</a>
+      <a href="https://github.com/artembobkin/ImmersiveMap">GitHub</a>
       <button class="icon-btn" id="themeToggle" aria-label="Toggle color theme" title="Toggle theme">
         <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
       </button>
