@@ -1,0 +1,84 @@
+/* The documentation: the list of pages on the left, the page in the middle,
+   its sections on the right. Inlined into the documentation pages and nowhere
+   else, after pages.css, whose .post-body rules set the prose. */
+
+/* Three columns want more room than the other pages use. This sheet is on
+   these pages only, so the header and the footer widen with them and their
+   edges stay in line with the columns. */
+@media (min-width: 1081px) {
+  .wrap { width: min(1240px, 100% - 2.5rem); }
+}
+
+.docs-layout {
+  display: grid; grid-template-columns: 220px minmax(0, 1fr) 190px;
+  gap: clamp(2rem, 4vw, 3.5rem); align-items: start;
+  padding-block: clamp(1.6rem, 3vw, 2.6rem) clamp(3rem, 6vw, 5rem);
+}
+
+/* ---- the two side columns ---- */
+.docs-nav, .docs-toc {
+  position: sticky; top: calc(var(--header-h) + 1.6rem);
+  max-height: calc(100vh - var(--header-h) - 3.2rem); overflow-y: auto;
+}
+.docs-side-title {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); margin: 0 0 .7rem;
+}
+.docs-nav ul, .docs-toc ul { list-style: none; margin: 0; padding: 0; }
+
+.docs-nav a {
+  display: block; padding: .38rem .7rem; border-radius: 7px;
+  font-size: .92rem; line-height: 1.35; color: var(--muted); text-decoration: none;
+  transition: color .15s, background .15s;
+}
+.docs-nav li + li { margin-top: .1rem; }
+.docs-nav a:hover { color: var(--ink); background: var(--accent-soft); }
+.docs-nav a[aria-current="page"] { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.docs-nav .docs-side-title { padding-inline: .7rem; }
+
+.docs-toc ul { border-left: 1px solid var(--line); }
+.docs-toc a {
+  display: block; padding: .24rem 0 .24rem .85rem;
+  font-size: .82rem; line-height: 1.35; color: var(--muted); text-decoration: none;
+  transition: color .15s;
+}
+.docs-toc a:hover { color: var(--accent); }
+
+/* ---- the page ---- */
+.docs-article { width: 100%; max-width: 760px; margin-inline: auto; min-width: 0; }
+.docs-article h1 {
+  font-size: clamp(1.9rem, 3.4vw, 2.4rem); line-height: 1.12; letter-spacing: -0.025em;
+  margin: 0 0 1.1rem; font-weight: 800; color: var(--ink-strong);
+}
+.docs-article .post-body { font-size: 1rem; }
+.docs-article .post-body h2 { font-size: clamp(1.3rem, 2.2vw, 1.5rem); margin-top: 2em; }
+.docs-article .post-body h3 { font-size: 1.12rem; margin-top: 1.7em; }
+/* Otherwise a jump to a section lands it underneath the sticky header. */
+.docs-article .post-body :is(h2, h3) { scroll-margin-top: calc(var(--header-h) + 1.2rem); }
+
+/* ---- previous and next ---- */
+.docs-pager {
+  display: flex; justify-content: space-between; gap: 1rem;
+  margin-top: 3rem; padding-top: 1.4rem; border-top: 1px solid var(--line);
+}
+.docs-pager a { text-decoration: none; color: var(--accent); font-weight: 600; font-size: .95rem; }
+.docs-pager a:hover { text-decoration: underline; }
+.docs-pager span { display: block; font-family: var(--mono); font-size: .72rem; font-weight: 400; color: var(--muted); }
+.docs-pager .next { margin-left: auto; text-align: right; }
+
+/* The sections are the first thing to go: a page reads fine without them. */
+@media (max-width: 1080px) {
+  .docs-layout { grid-template-columns: 200px minmax(0, 1fr); }
+  .docs-toc { display: none; }
+}
+
+/* On a phone the list of pages comes first, wrapped into a compact block, so
+   the page itself still starts on the first screen. */
+@media (max-width: 744px) {
+  .docs-layout { grid-template-columns: minmax(0, 1fr); gap: 1.4rem; padding-top: 1rem; }
+  .docs-nav { position: static; max-height: none; border-bottom: 1px solid var(--line); padding-bottom: .9rem; }
+  .docs-nav .docs-side-title { display: none; }
+  .docs-nav ul { display: flex; flex-wrap: wrap; gap: .2rem .3rem; }
+  .docs-nav li + li { margin-top: 0; }
+  .docs-nav a { padding: .45rem .6rem; font-size: .86rem; }
+}

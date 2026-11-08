@@ -15,18 +15,49 @@
 {{- end}}
 
 {{define "content" -}}
-<article class="post">
-  <div class="wrap-narrow">
-    <header class="page-head">
-      <p class="eyebrow"><a href="/documentation/" style="text-decoration:none">← Documentation</a></p>
-      <h1>{{.Doc.Title}}</h1>
-    </header>
+<!-- These pages are the Documentation folder of the engine's repository
+     (documentation/, kept in step with GitHub by the follow-readme workflow),
+     rendered at build time by docs.go. Change the text on GitHub, and they
+     follow. -->
+<div class="wrap docs-layout">
+  <nav class="docs-nav" aria-label="Documentation pages">
+    <p class="docs-side-title">Documentation</p>
+    <ul>
+    {{- range .Docs}}
+      <li><a href="{{.URL}}"{{if eq .Slug $.Doc.Slug}} aria-current="page"{{end}}>{{.Title}}</a></li>
+    {{- end}}
+    </ul>
+  </nav>
 
+  <article class="docs-article">
+    <h1>{{.Doc.Title}}</h1>
     <div class="post-body">
 {{.Doc.HTML}}
     </div>
-  </div>
-</article>
+
+    {{- if or .PrevDoc .NextDoc}}
+    <nav class="docs-pager" aria-label="Previous and next page">
+      {{- with .PrevDoc}}
+      <a class="prev" rel="prev" href="{{.URL}}"><span>Previous</span>{{.Title}}</a>
+      {{- end}}
+      {{- with .NextDoc}}
+      <a class="next" rel="next" href="{{.URL}}"><span>Next</span>{{.Title}}</a>
+      {{- end}}
+    </nav>
+    {{- end}}
+  </article>
+
+  {{- if .Doc.Sections}}
+  <nav class="docs-toc" aria-label="On this page">
+    <p class="docs-side-title">On this page</p>
+    <ul>
+    {{- range .Doc.Sections}}
+      <li><a href="#{{.ID}}">{{.Title}}</a></li>
+    {{- end}}
+    </ul>
+  </nav>
+  {{- end}}
+</div>
 {{- end}}
 
 {{define "scripts" -}}

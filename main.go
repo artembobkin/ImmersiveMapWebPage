@@ -52,6 +52,7 @@ type stylesheets struct {
 	pages template.CSS // components of the generated pages, the prose rules included
 	code  template.CSS // Chroma; pages that render a code block
 	home  template.CSS // what the README needs on top of the prose rules; / only
+	docs  template.CSS // the three columns of the documentation pages
 }
 
 func loadStyles(tmplDir string) (stylesheets, error) {
@@ -65,6 +66,7 @@ func loadStyles(tmplDir string) (stylesheets, error) {
 		{"pages.css", &s.pages, ""},
 		{"code.css", &s.code, " (generate it with -emit-code-css)"},
 		{"home.css", &s.home, ""},
+		{"docs.css", &s.docs, ""},
 	} {
 		b, err := os.ReadFile(filepath.Join(tmplDir, f.name))
 		if err != nil {
@@ -109,6 +111,8 @@ type pageData struct {
 	Tutorial    *Article
 	Docs        []Doc
 	Doc         *Doc
+	PrevDoc     *Doc
+	NextDoc     *Doc
 }
 
 // builder carries what every render step shares. It exists so the helpers stop
@@ -210,7 +214,7 @@ func build(contentDir, tutorialDir, docsDir, siteDir, outDir, baseURL string, dr
 	if err != nil {
 		return err
 	}
-	docs, pages, err := loadDocs(docsDir, baseURL, rs)
+	docs, pages, err := loadDocs(docsDir, baseURL, rs, readmeSrc)
 	if err != nil {
 		return err
 	}
@@ -246,11 +250,14 @@ func build(contentDir, tutorialDir, docsDir, siteDir, outDir, baseURL string, dr
 	if err := b.render("home.html.tmpl", "index.html", home); err != nil {
 		return err
 	}
-	if err := b.renderDocsIndex(docs); err != nil {
-		return err
+	// The tab opens on the first page, as documentation does, rather than on a
+	// list that would only repeat the sidebar. That page has its own URL too,
+	// which is the canonical one, so the sitemap lists it once.
+	if err := b.renderDoc(docs, 0, filepath.Join("documentation", "index.html")); err != nil {
+		return fmt.Errorf("rendering documentation: %w", err)
 	}
 	for i := range docs {
-		if err := b.renderDoc(docs[i]); err != nil {
+		if err := b.renderDoc(docs, i, filepath.Join("documentation", docs[i].Slug, "index.html")); err != nil {
 			return fmt.Errorf("rendering documentation %s: %w", docs[i].Slug, err)
 		}
 	}
@@ -475,16 +482,17 @@ func softwareApplicationJSONLD(baseURL, description string) (template.JS, error)
 // palette too. The landing page is rendered Markdown as well (the README), so
 // it takes the same two and its own sheet on top.
 
-func (b *builder) renderDocsIndex(docs []Doc) error {
-	d := b.page("documentation", b.css.pages)
+func (b *builder) renderDoc(docs []Doc, i int, path string) error {
+	d := b.page("documentation", b.css.pages, b.css.code, b.css.docs)
 	d.Docs = docs
-	return b.render("documentation.html.tmpl", "documentation/index.html", d)
-}
-
-func (b *builder) renderDoc(doc Doc) error {
-	d := b.page("documentation", b.css.pages, b.css.code)
-	d.Doc = &doc
-	return b.render("doc.html.tmpl", filepath.Join("documentation", doc.Slug, "index.html"), d)
+	d.Doc = &docs[i]
+	if i > 0 {
+		d.PrevDoc = &docs[i-1]
+	}
+	if i+1 < len(docs) {
+		d.NextDoc = &docs[i+1]
+	}
+	return b.render("doc.html.tmpl", path, d)
 }
 
 func (b *builder) renderIndex(articles []Article) error {

@@ -138,6 +138,34 @@
 .post-body pre, .post-body table, .tut-embed { max-width: 100%; min-width: 0; }
 .post-card, .tut-card { min-width: 0; }
 
+/* Left to itself the browser paints a black bar along the bottom of a code
+   block. Slim and in the theme's colours instead, on a clear track so the
+   rounded corners of the block stay rounded. WebKit and Chromium take the
+   pseudo-elements; Firefox has only the two standard properties. */
+.post-body pre, .post-body table, .docs-nav, .docs-toc {
+  --scroll-thumb: color-mix(in srgb, var(--muted) 45%, transparent);
+  --scroll-thumb-hover: color-mix(in srgb, var(--muted) 75%, transparent);
+}
+.post-body pre::-webkit-scrollbar, .post-body table::-webkit-scrollbar,
+.docs-nav::-webkit-scrollbar, .docs-toc::-webkit-scrollbar { width: 10px; height: 10px; }
+.post-body pre::-webkit-scrollbar-track, .post-body table::-webkit-scrollbar-track,
+.docs-nav::-webkit-scrollbar-track, .docs-toc::-webkit-scrollbar-track,
+.post-body pre::-webkit-scrollbar-corner, .post-body table::-webkit-scrollbar-corner { background: transparent; }
+.post-body pre::-webkit-scrollbar-thumb, .post-body table::-webkit-scrollbar-thumb,
+.docs-nav::-webkit-scrollbar-thumb, .docs-toc::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb); border-radius: 999px;
+  border: 3px solid transparent; background-clip: padding-box;
+}
+.post-body pre::-webkit-scrollbar-thumb:hover, .post-body table::-webkit-scrollbar-thumb:hover,
+.docs-nav::-webkit-scrollbar-thumb:hover, .docs-toc::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover); background-clip: padding-box;
+}
+@supports not selector(::-webkit-scrollbar) {
+  .post-body pre, .post-body table, .docs-nav, .docs-toc {
+    scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;
+  }
+}
+
 /* ---- 404 ---- */
 /* The row of ways out. Wraps to a column on a narrow screen rather than
    shrinking the buttons, which are already at their minimum tap size. */

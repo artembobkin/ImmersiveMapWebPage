@@ -57,6 +57,7 @@
 
 /* explicit toggle overrides both directions */
 :root[data-theme="light"] {
+  color-scheme: light; /* native scrollbars follow the site's theme, not the OS */
   --ground: #f3f6fc; --surface: #ffffff; --surface-2: #eef3fb;
   --ink: #0c1420; --ink-strong: #05090f; --muted: #56657d;
   --line: rgba(20,55,100,0.12); --line-strong: rgba(20,55,100,0.20);
@@ -68,6 +69,7 @@
   --code-kw: #cf222e; --code-ty: #953800; --code-fn: #8250df; --code-at: #0550ae;
 }
 :root[data-theme="dark"] {
+  color-scheme: dark; /* native scrollbars follow the site's theme, not the OS */
   --ground: #060911; --surface: #0d1320; --surface-2: #121a2b;
   --ink: #e4ebf7; --ink-strong: #f6f9ff; --muted: #8a9bb5;
   --line: rgba(140,170,210,0.14); --line-strong: rgba(140,170,210,0.24);

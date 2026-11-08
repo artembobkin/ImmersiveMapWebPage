@@ -100,6 +100,7 @@ func testDocs(t *testing.T, dir string) string {
 	docs := filepath.Join(dir, "documentation")
 	writeFile(t, docs, "Camera.md", "# Camera\n\nThe camera looks at a point.\n\n## Limits\n\n```swift\nlet x = 1\n```\n\nSee [Custom style](CustomStyle.md#a-schema) and ![a frame](images/frame.png).\n")
 	writeFile(t, docs, "CustomStyle.md", "# Custom *style*\n\nWhen the theme is not enough, see [Camera](./Camera.md), [the overview](../README.md#quick-start) and [the sources](../Sources/Map.swift).\n")
+	writeFile(t, docs, "Attribution.md", "# Attribution\n\nThe README does not mention this page.\n")
 	writeFile(t, docs, "not-markdown.txt", "ignored")
 	return docs
 }
@@ -313,8 +314,8 @@ func TestBuild(t *testing.T) {
 	t.Run("documentation_is_the_folder_on_github", func(t *testing.T) {
 		index := readString(t, filepath.Join(out, "documentation", "index.html"))
 		for _, want := range []string{
-			`<link rel="canonical" href="https://example.com/documentation/"`,
-			`<a href="/documentation/camera/">Camera</a>`,
+			`<link rel="canonical" href="https://example.com/documentation/camera/"`, // it opens on the first page
+			`<a href="/documentation/camera/" aria-current="page">Camera</a>`,
 			`<a href="/documentation/custom-style/">Custom style</a>`,
 			`<p>The camera looks at a point.</p>`,
 			`<a href="/documentation/" aria-current="page">Documentation</a>`,
@@ -327,6 +328,9 @@ func TestBuild(t *testing.T) {
 		for _, want := range []string{
 			`<link rel="canonical" href="https://example.com/documentation/camera/"`,
 			`<h1>Camera</h1>`,
+			`class="docs-nav"`,
+			`<a href="#limits">Limits</a>`,
+			`<a class="next" rel="next" href="/documentation/custom-style/"><span>Next</span>Custom style</a>`,
 			`class="chroma"`,
 			`href="/documentation/custom-style/#a-schema"`,
 			`src="https://raw.githubusercontent.com/o/r/main/Documentation/images/frame.png"`,
@@ -334,6 +338,16 @@ func TestBuild(t *testing.T) {
 			if !strings.Contains(camera, want) {
 				t.Errorf("camera page is missing %s", want)
 			}
+		}
+		// The README's order, then whatever it does not mention.
+		order := []string{">Camera</a>", ">Custom style</a>", ">Attribution</a>"}
+		for i := 1; i < len(order); i++ {
+			if strings.Index(camera, order[i-1]) >= strings.Index(camera, order[i]) {
+				t.Errorf("%s should come before %s in the sidebar", order[i-1], order[i])
+			}
+		}
+		if strings.Contains(camera, `rel="prev"`) {
+			t.Error("the first page has a previous page")
 		}
 		if strings.Contains(camera, `<h1 id="camera">`) {
 			t.Error("camera page carries its title twice")
@@ -358,7 +372,10 @@ func TestBuild(t *testing.T) {
 			t.Error("a file that is not Markdown was rendered")
 		}
 		sitemap := readString(t, filepath.Join(out, "sitemap.xml"))
-		for _, want := range []string{"https://example.com/documentation/", "https://example.com/documentation/custom-style/"} {
+		if strings.Contains(sitemap, "<loc>https://example.com/documentation/</loc>") {
+			t.Error("sitemap lists /documentation/, which is the first page under a second address")
+		}
+		for _, want := range []string{"https://example.com/documentation/camera/", "https://example.com/documentation/custom-style/"} {
 			if !strings.Contains(sitemap, "<loc>"+want+"</loc>") {
 				t.Errorf("sitemap is missing %s", want)
 			}
@@ -375,6 +392,8 @@ func TestBuild(t *testing.T) {
 			{"index.html", ".chroma", ".hero"},                             // and Chroma, for its code block
 			{"articles/index.html", ".post-card", ".chroma"},               // a listing has no code
 			{"articles/index.html", ".post-card", ".readme"},               // and is not the README
+			{"articles/index.html", ".post-card", ".docs-layout"},          // nor documentation
+			{"documentation/camera/index.html", ".docs-layout", ".readme"}, // documentation has its columns
 			{"articles/morphing-a-globe/index.html", ".chroma", ".readme"}, // an article has code, no README rules
 		} {
 			page := readString(t, filepath.Join(out, c.page))
@@ -630,6 +649,78 @@ func TestReadmeLinks(t *testing.T) {
 	} {
 		if got := readmeDescription([]byte(c.in)); got != c.want {
 			t.Errorf("readmeDescription(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+
+// TestCodeCSSCoversDarkTheme pins that every token the light theme colours is
+// also set in the dark one. A token left out keeps its light colour, which is
+// dark text on a dark background.
+func TestCodeCSSCoversDarkTheme(t *testing.T) {
+	const darkScope = `:root[data-theme="dark"] `
+	css := readString(t, filepath.Join(siteDir, "templates", "code.css"))
+	inDark := map[string]bool{}
+	var light []string
+	for _, line := range strings.Split(css, "\n") {
+		if rule, ok := strings.CutPrefix(line, darkScope); ok {
+			inDark[ruleSelector(rule)] = true
+		} else if strings.HasPrefix(line, ".chroma") && strings.Contains(line, "color:") {
+			light = append(light, ruleSelector(line))
+		}
+	}
+	if len(light) == 0 || len(inDark) == 0 {
+		t.Fatal("found no rules; has the format of code.css changed?")
+	}
+	for _, s := range light {
+		if !inDark[s] {
+			t.Errorf("%s is coloured in the light theme only", s)
+		}
+	}
+}
+
+// TestSwiftHighlighting pins how names in Swift are coloured, through the same
+// renderer the pages use.
+func TestSwiftHighlighting(t *testing.T) {
+	src := "```swift\n@State private var camera = Controller()\nvar body: some View {\n    MapView()\n        .tileArchive(URL(string: \"x\")!)\n        .zoom(maximum: .pi)\n}\n```\n"
+	rendered, err := renderMarkdown(newMarkdown(), []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		`<span class="nd">@State</span>`,
+		`<span class="k">some</span>`,
+		`<span class="nc">View</span>`,
+		`<span class="nc">MapView</span>`,
+		`<span class="nc">URL</span>`,
+		`<span class="nf">tileArchive</span>`,
+		`<span class="na">pi</span>`,
+		`<span class="n">string</span>`, // an argument label stays plain
+	} {
+		if !strings.Contains(string(rendered), want) {
+			t.Errorf("rendered Swift is missing %s in:\n%s", want, rendered)
+		}
+	}
+}
+
+// TestInlineCodeHighlighting pins what is coloured in a sentence and what is
+// left exactly as it was.
+func TestInlineCodeHighlighting(t *testing.T) {
+	for _, c := range []struct{ in, want string }{
+		{`<code>MapView()</code>`, `<code class="chroma"><span class="nc">MapView</span><span class="p">()</span></code>`},
+		{`<code>Service.tileURL</code>`, `<code class="chroma"><span class="nc">Service</span><span class="p">.</span><span class="na">tileURL</span></code>`},
+		{`<code>.zoom(_:)</code>`, `<span class="nf">zoom</span>`},
+		{`<code>headers</code>`, `<code class="chroma"><span class="na">headers</span></code>`},
+		{`<code>true</code>`, `<code class="chroma"><span class="kc">true</span></code>`},
+		{`<code>a &lt; b</code>`, `&lt;`},
+		{`<pre><code>not highlighted</code></pre>`, `<pre><code>not highlighted</code></pre>`},
+		{`<pre class="chroma"><code><span class="k">let</span></code></pre>`, `<pre class="chroma"><code><span class="k">let</span></code></pre>`},
+	} {
+		got := highlightInlineCode(c.in)
+		if !strings.Contains(got, c.want) {
+			t.Errorf("highlightInlineCode(%s) = %s, want it to contain %s", c.in, got, c.want)
+		}
+		if strings.Contains(got, `class="err"`) {
+			t.Errorf("highlightInlineCode(%s) marks an error: %s", c.in, got)
 		}
 	}
 }

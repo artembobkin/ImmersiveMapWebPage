@@ -112,7 +112,6 @@ func writeSitemap(outDir string, site Site, docs []Doc, articles, tutorials []Ar
 		return list[0].Date.Format("2006-01-02")
 	}
 	entry(site.BaseURL+"/", "", "1.0")
-	entry(site.BaseURL+"/documentation/", "", "0.8")
 	for _, d := range docs {
 		entry(d.AbsURL, "", "0.7")
 	}

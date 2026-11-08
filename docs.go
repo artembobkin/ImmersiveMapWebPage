@@ -29,15 +29,23 @@ type Doc struct {
 	AbsURL      string
 	Title       string
 	Description string
+	Sections    []DocSection // for the "On this page" column
 	HTML        template.HTML
+	file        string // the name on GitHub
 }
 
-// loadDocs reads and renders every *.md directly in dir, ordered by title. As
-// with the README, documentation that is missing or empty fails the build: a
+// DocSection is one second-level heading of a page.
+type DocSection struct {
+	ID    string
+	Title string
+}
+
+// loadDocs reads and renders every *.md directly in dir, in reading order (see
+// sortDocs). As with the README, documentation that is missing or empty fails the build: a
 // section with nothing in it must never replace the one that is live. The map
 // it also returns is what repoLinks needs: every file on GitHub that has a page
 // on this site.
-func loadDocs(dir, baseURL string, rs readmeSource) ([]Doc, map[string]string, error) {
+func loadDocs(dir, baseURL string, rs readmeSource, readmeSrc []byte) ([]Doc, map[string]string, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, nil, fmt.Errorf("reading the documentation: %w", err)
@@ -97,13 +105,41 @@ func loadDocs(dir, baseURL string, rs readmeSource) ([]Doc, map[string]string, e
 			AbsURL:      baseURL + "/documentation/" + slug + "/",
 			Title:       title,
 			Description: description,
-			HTML:        template.HTML(lazyImages(repoLinks(body, docsRepoDir, rs, pages))),
+			Sections:    docSections(body),
+			HTML:        template.HTML(lazyImages(highlightInlineCode(repoLinks(body, docsRepoDir, rs, pages)))),
+			file:        name,
 		})
 	}
+	sortDocs(docs, readmeSrc)
+	return docs, pages, nil
+}
+
+var readmeDocRe = regexp.MustCompile(docsRepoDir + `/([^)\s"#]+\.md)`)
+
+// sortDocs puts the pages in reading order. The folder has no order of its own
+// and an alphabetical one starts on whatever sorts first, but the README
+// introduces the guides in the order they are meant to be read, so that order
+// is used, and it stays GitHub's to change. Pages the README does not mention
+// come after, by title.
+func sortDocs(docs []Doc, readmeSrc []byte) {
+	rank := map[string]int{}
+	for _, m := range readmeDocRe.FindAllSubmatch(readmeSrc, -1) {
+		if _, seen := rank[string(m[1])]; !seen {
+			rank[string(m[1])] = len(rank)
+		}
+	}
+	position := func(d Doc) int {
+		if r, ok := rank[d.file]; ok {
+			return r
+		}
+		return len(rank)
+	}
 	sort.Slice(docs, func(i, j int) bool {
+		if a, b := position(docs[i]), position(docs[j]); a != b {
+			return a < b
+		}
 		return strings.ToLower(docs[i].Title) < strings.ToLower(docs[j].Title)
 	})
-	return docs, pages, nil
 }
 
 var (
@@ -134,9 +170,25 @@ func splitDocTitle(rendered, fallback string) (title, body string) {
 	if m == nil {
 		return fallback, rendered
 	}
-	title = strings.TrimSpace(stdhtml.UnescapeString(docTagRe.ReplaceAllString(m[1], "")))
+	title = plainText(m[1])
 	if title == "" {
 		title = fallback
 	}
 	return title, rendered[len(m[0]):]
+}
+
+var docSectionRe = regexp.MustCompile(`(?s)<h2 id="([^"]*)">(.*?)</h2>`)
+
+// docSections lists the second-level headings of a rendered page.
+func docSections(rendered string) []DocSection {
+	var out []DocSection
+	for _, m := range docSectionRe.FindAllStringSubmatch(rendered, -1) {
+		out = append(out, DocSection{ID: m[1], Title: plainText(m[2])})
+	}
+	return out
+}
+
+// plainText strips the markup from a fragment of rendered HTML.
+func plainText(fragment string) string {
+	return strings.TrimSpace(stdhtml.UnescapeString(docTagRe.ReplaceAllString(fragment, "")))
 }

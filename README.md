@@ -39,8 +39,9 @@ Markdown files directly inside the
 of the ImmersiveMap repository, written by the same workflow and never edited
 here: a page added, changed, renamed or deleted on GitHub is added, changed,
 renamed or deleted here. Each file becomes a page (`CustomStyle.md` is
-`/documentation/custom-style/`), titled by the heading it opens with, and the
-index lists them by title. Links follow the same rule as the landing page's:
+`/documentation/custom-style/`), titled by the heading it opens with. The
+sidebar follows the order in which the README links to the guides, and
+`/documentation/` opens on the first of them. Links follow the same rule as the landing page's:
 a link to a page of the site stays on the site, and only images and files with
 no page here point at the repository.
 
