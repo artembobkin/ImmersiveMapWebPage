@@ -1,0 +1,47 @@
+{{define "head" -}}
+<title>{{.Doc.Title}} · ImmersiveMap documentation</title>
+<meta name="description" content="{{.Doc.Description}}" />
+<link rel="canonical" href="{{.Doc.AbsURL}}" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="ImmersiveMap" />
+<meta property="og:title" content="{{.Doc.Title}}" />
+<meta property="og:description" content="{{.Doc.Description}}" />
+<meta property="og:url" content="{{.Doc.AbsURL}}" />
+<meta property="og:image" content="{{.Site.BaseURL}}/assets/og-cover.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{.Doc.Title}}" />
+<meta name="twitter:description" content="{{.Doc.Description}}" />
+<meta name="twitter:image" content="{{.Site.BaseURL}}/assets/og-cover.png" />
+{{- end}}
+
+{{define "content" -}}
+<article class="post">
+  <div class="wrap-narrow">
+    <header class="page-head">
+      <p class="eyebrow"><a href="/documentation/" style="text-decoration:none">← Documentation</a></p>
+      <h1>{{.Doc.Title}}</h1>
+    </header>
+
+    <div class="post-body">
+{{.Doc.HTML}}
+    </div>
+  </div>
+</article>
+{{- end}}
+
+{{define "scripts" -}}
+<script>
+/* Heading anchors, same as on the article pages. */
+(function () {
+  var hs = document.querySelectorAll(".post-body h2[id], .post-body h3[id]");
+  for (var i = 0; i < hs.length; i++) {
+    var a = document.createElement("a");
+    a.className = "anchor";
+    a.href = "#" + hs[i].id;
+    a.textContent = "#";
+    a.setAttribute("aria-hidden", "true");
+    hs[i].appendChild(a);
+  }
+})();
+</script>
+{{- end}}

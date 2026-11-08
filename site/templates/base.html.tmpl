@@ -23,11 +23,12 @@
     </a>
     <nav class="nav-links">
       <!-- The landing page is the README, so nothing here points into it: its
-           headings are GitHub's to rename. Articles are in the header because
-           the README does not link to them, and without a link here they would
-           be reachable by URL alone. Tutorials are not linked: the section
-           still builds and is reachable at /tutorials/, it is just not in the
-           chrome. -->
+           headings are GitHub's to rename. Documentation and Articles are in
+           the header because the README does not link to these sections, and
+           without a link here they would be reachable by URL alone. Tutorials
+           are not linked: the section still builds and is reachable at
+           /tutorials/, it is just not in the chrome. -->
+      <a href="/documentation/"{{if eq .Section "documentation"}} aria-current="page"{{end}}>Documentation</a>
       <a href="/articles/"{{if eq .Section "articles"}} aria-current="page"{{end}}>Articles</a>
       <a href="https://github.com/artembobkin/ImmersiveMap">GitHub</a>
       <button class="icon-btn" id="themeToggle" aria-label="Toggle color theme" title="Toggle theme">
@@ -55,7 +56,7 @@
       <a href="https://github.com/artembobkin/ImmersiveMap/issues">Report a bug</a>
       <a href="https://swiftpackageindex.com/artembobkin/ImmersiveMap">Swift Package Index</a>
       <a href="https://www.reddit.com/user/devslacker/submitted/">Reddit</a>
-      <a href="https://github.com/artembobkin/ImmersiveMap#readme">Docs</a>
+      <a href="/documentation/">Docs</a>
     </div>
   </div>
 </footer>

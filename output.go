@@ -92,7 +92,7 @@ func writeManifest(outDir string, articles []Article) error {
 	return os.WriteFile(path, append(body, '\n'), 0o644)
 }
 
-func writeSitemap(outDir string, site Site, articles, tutorials []Article) error {
+func writeSitemap(outDir string, site Site, docs []Doc, articles, tutorials []Article) error {
 	var b strings.Builder
 	b.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
 	b.WriteString(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` + "\n")
@@ -112,6 +112,10 @@ func writeSitemap(outDir string, site Site, articles, tutorials []Article) error
 		return list[0].Date.Format("2006-01-02")
 	}
 	entry(site.BaseURL+"/", "", "1.0")
+	entry(site.BaseURL+"/documentation/", "", "0.8")
+	for _, d := range docs {
+		entry(d.AbsURL, "", "0.7")
+	}
 	entry(site.BaseURL+"/articles/", newest(articles), "0.8")
 	for _, a := range articles {
 		entry(a.AbsURL, a.Date.Format("2006-01-02"), "0.7")

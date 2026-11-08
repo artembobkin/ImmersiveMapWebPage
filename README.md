@@ -2,8 +2,9 @@
 
 The public site for [ImmersiveMap](https://github.com/artembobkin/ImmersiveMap),
 the Swift + Metal map engine for SwiftUI. The landing page is the engine's
-README, rendered; around it are the articles and the tutorials, plus the RSS
-feed, sitemap and manifest that go with them.
+README, rendered, and the documentation is its Documentation folder, rendered;
+around them are the articles and the tutorials, plus the RSS feed, sitemap and
+manifest that go with them.
 
 It is informational and entirely static. Nothing on a page talks to a server at
 runtime, so the build output is the whole deployable artefact and any static
@@ -14,8 +15,9 @@ host can serve it.
 Nothing of the landing page is written in this repository. `landing/README.md`
 is a copy of the README of the ImmersiveMap repository, and the build renders
 it with the same Markdown renderer the articles use, inside the site's shell.
-Relative images and links in it are pointed back at the repository, so the
-page shows what GitHub shows, and its first paragraph becomes the page's
+Its images point at the repository, so the page shows what GitHub shows. Its
+links stay on the site wherever the site has the page, and only what it does
+not have, such as a source file, goes to GitHub. Its first paragraph becomes the page's
 description for search engines and link previews.
 
 The copy is kept by the GitHub Actions workflow in
@@ -28,6 +30,22 @@ To change the landing page, change the README. To preview a README edit before
 pushing it over there, `make site README=../ImmersiveMap/README.md`. A README
 that is missing or empty fails the build, on purpose: a landing page with
 nothing on it must never replace the one that is live.
+
+## The documentation is the Documentation folder
+
+`/documentation/` works the same way. `documentation/` is a copy of the
+Markdown files directly inside the
+[Documentation folder](https://github.com/artembobkin/ImmersiveMap/tree/main/Documentation)
+of the ImmersiveMap repository, written by the same workflow and never edited
+here: a page added, changed, renamed or deleted on GitHub is added, changed,
+renamed or deleted here. Each file becomes a page (`CustomStyle.md` is
+`/documentation/custom-style/`), titled by the heading it opens with, and the
+index lists them by title. Links follow the same rule as the landing page's:
+a link to a page of the site stays on the site, and only images and files with
+no page here point at the repository.
+
+Documentation that is missing, has no pages or has an empty page fails the
+build, for the same reason a bad README does.
 
 ## Build
 
@@ -46,12 +64,14 @@ are skipped unless you build with `make drafts`.
 
 ```
 landing/README.md  the engine's README, the landing page; written by the workflow
+documentation/     the engine's Documentation folder; written by the workflow
 articles/          one Markdown file per article
 tutorials/         one per screencast; each needs a YouTube id
 site/templates/    the page templates and the stylesheets they inline
 site/assets/       the social card image, served under /assets/ and cached for a year
 site/root/         files copied to the root of the output (_headers)
 readme.go          renders the README into the landing page
+docs.go            renders the documentation pages
 dist/              build output, not in git
 ```
 
@@ -68,8 +88,8 @@ by hand; regenerate it with `make code-css`.
 Cloudflare Workers with static assets, connected to this repository: every
 push to `main` is built and published by Cloudflare, and nothing is deployed
 by hand. The pushes come from two places, a person committing here and the
-follow-readme workflow committing a changed README, and Cloudflare treats them
-the same.
+follow-readme workflow committing a changed README or documentation page, and
+Cloudflare treats them the same.
 
 The only command the host needs is `npx wrangler deploy`: `wrangler.jsonc`
 carries the build command as well as the upload, so the site is rendered and

@@ -1,14 +1,15 @@
-# Keeps landing/README.md the same as the README of the ImmersiveMap
-# repository, so the landing page follows it without anyone touching it.
+# Keeps landing/README.md and documentation/ the same as the README and the
+# Documentation folder of the ImmersiveMap repository, so the landing page and
+# the documentation pages follow them without anyone touching them.
 #
-# Once an hour the file is fetched and compared with the copy here. When it
-# differs, the new one is committed and pushed. That push is a push to main
-# like any other, so Cloudflare (which is connected to this repository and
-# builds on every push) renders and publishes the site; nothing here deploys.
+# Once an hour both are fetched and compared with the copies here. Whatever
+# differs is committed and pushed. That push is a push to main like any other,
+# so Cloudflare (which is connected to this repository and builds on every
+# push) renders and publishes the site; nothing here deploys.
 #
-# No secrets: the README is public, and the workflow's own token can push to
-# the repository it runs in.
-name: Follow the README
+# No secrets: both are public, and the workflow's own token can push to the
+# repository it runs in.
+name: Follow the README and the documentation
 
 on:
   schedule:
@@ -38,20 +39,38 @@ jobs:
           # A README that came back empty is a failed fetch, whatever curl said.
           test -s landing/README.md
 
-      - name: Commit it if it changed
+      - name: Fetch the documentation
+        run: |
+          tmp=$(mktemp -d)
+          curl -fsSL "https://github.com/$SOURCE_REPO/archive/refs/heads/$SOURCE_BRANCH.tar.gz" | tar -xz -C "$tmp" --strip-components=1
+          # No pages at all is a failed fetch, and must not wipe the copy.
+          ls "$tmp"/Documentation/*.md > /dev/null
+          # Replaced whole, so a page deleted or renamed over there goes here too.
+          rm -rf documentation
+          mkdir documentation
+          cp "$tmp"/Documentation/*.md documentation/
+
+      - name: Commit what changed
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet -- landing/README.md; then
-            echo "landing/README.md is already the README at $SOURCE_REPO@$SOURCE_BRANCH"
-            exit 0
-          fi
-          # Name the commit after the one that changed the README over there.
-          rev=$(gh api "repos/$SOURCE_REPO/commits?sha=$SOURCE_BRANCH&path=README.md&per_page=1" \
-                --jq '.[0] | "\(.sha[0:7]) \(.commit.message | split("\n")[0])"' || true)
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add landing/README.md
-          git commit -m "Follow the README: ${rev:-latest}" \
-                     -m "Copied from https://github.com/$SOURCE_REPO/blob/$SOURCE_BRANCH/README.md by the follow-readme workflow."
+
+          # follow <path here> <path over there> <what to call it>
+          follow() {
+            if [ -z "$(git status --porcelain -- "$1")" ]; then
+              echo "$1 is already $2 at $SOURCE_REPO@$SOURCE_BRANCH"
+              return 0
+            fi
+            # Name the commit after the one that changed it over there.
+            rev=$(gh api "repos/$SOURCE_REPO/commits?sha=$SOURCE_BRANCH&path=$2&per_page=1" \
+                  --jq '.[0] | "\(.sha[0:7]) \(.commit.message | split("\n")[0])"' || true)
+            git add -A -- "$1"
+            git commit -m "Follow $3: ${rev:-latest}" \
+                       -m "Copied from https://github.com/$SOURCE_REPO/blob/$SOURCE_BRANCH/$2 by the follow-readme workflow."
+          }
+
+          follow landing/README.md README.md "the README"
+          follow documentation Documentation "the documentation"
           git push

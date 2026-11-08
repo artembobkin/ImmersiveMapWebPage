@@ -16,7 +16,7 @@ READMEFLAG = $(if $(README),-readme $(README))
 
 .PHONY: site drafts check serve code-css clean
 
-site: ## render the README, the articles and the tutorials into $(OUT)
+site: ## render the README, the documentation, the articles and the tutorials into $(OUT)
 	go run . -content articles -tutorials tutorials -site site -out $(OUT) -base-url $(BASE_URL) $(READMEFLAG)
 
 # Drafts are skipped by a normal build, so this is how you look at one.

@@ -1,8 +1,8 @@
 // Command blogen renders the whole website into a directory of static files:
-// the landing page, the articles and tutorials written in Markdown, and the
-// feed, manifest, sitemap and robots.txt that go with them. Every page shares
-// one shell, so there is exactly one nav, one footer and one set of design
-// tokens.
+// the landing page, the documentation, the articles and tutorials written in
+// Markdown, and the feed, manifest, sitemap and robots.txt that go with them.
+// Every page shares one shell, so there is exactly one nav, one footer and one
+// set of design tokens.
 //
 // The output is the deployable artefact in full. Nothing here talks to a
 // server at runtime: the site is informational, so a page that needed an API
@@ -107,6 +107,8 @@ type pageData struct {
 	Article     *Article
 	Tutorials   []Article
 	Tutorial    *Article
+	Docs        []Doc
+	Doc         *Doc
 }
 
 // builder carries what every render step shares. It exists so the helpers stop
@@ -162,7 +164,8 @@ func main() {
 		emitCSS     = flag.Bool("emit-code-css", false, "print the syntax-highlighting stylesheet and exit")
 		includeDraf = flag.Bool("drafts", false, "also publish articles marked draft: true")
 		readmePath  = flag.String("readme", "landing/README.md", "the README that is the landing page")
-		repo        = flag.String("repo", "artembobkin/ImmersiveMap", "GitHub repository the README's relative links point into")
+		docsDir     = flag.String("docs", "documentation", "directory holding the copy of the engine's documentation")
+		repo        = flag.String("repo", "artembobkin/ImmersiveMap", "GitHub repository the README's and the documentation's relative links point into")
 		branch      = flag.String("branch", "main", "branch of -repo they point into")
 	)
 	flag.Parse()
@@ -174,12 +177,12 @@ func main() {
 		return
 	}
 	rs := readmeSource{Path: *readmePath, Repo: *repo, Branch: *branch}
-	if err := build(*contentDir, *tutorialDir, *siteDir, *outDir, strings.TrimRight(*baseURL, "/"), *includeDraf, rs); err != nil {
+	if err := build(*contentDir, *tutorialDir, *docsDir, *siteDir, *outDir, strings.TrimRight(*baseURL, "/"), *includeDraf, rs); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool, rs readmeSource) error {
+func build(contentDir, tutorialDir, docsDir, siteDir, outDir, baseURL string, drafts bool, rs readmeSource) error {
 	tmplDir := filepath.Join(siteDir, "templates")
 
 	css, err := loadStyles(tmplDir)
@@ -201,13 +204,17 @@ func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool
 	if err != nil {
 		return err
 	}
-	// Before the output is touched: if the README cannot be read, the build
-	// stops here with the previous output intact.
+	// Before the output is touched: if the README or the documentation cannot
+	// be read, the build stops here with the previous output intact.
 	readmeSrc, err := loadReadme(rs)
 	if err != nil {
 		return err
 	}
-	rm, err := renderReadme(newMarkdown(), readmeSrc, rs)
+	docs, pages, err := loadDocs(docsDir, baseURL, rs)
+	if err != nil {
+		return err
+	}
+	rm, err := renderReadme(newMarkdown(), readmeSrc, rs, pages)
 	if err != nil {
 		return err
 	}
@@ -239,6 +246,14 @@ func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool
 	if err := b.render("home.html.tmpl", "index.html", home); err != nil {
 		return err
 	}
+	if err := b.renderDocsIndex(docs); err != nil {
+		return err
+	}
+	for i := range docs {
+		if err := b.renderDoc(docs[i]); err != nil {
+			return fmt.Errorf("rendering documentation %s: %w", docs[i].Slug, err)
+		}
+	}
 	if err := b.renderIndex(articles); err != nil {
 		return err
 	}
@@ -268,14 +283,14 @@ func build(contentDir, tutorialDir, siteDir, outDir, baseURL string, drafts bool
 	if err := writeManifest(outDir, articles); err != nil {
 		return err
 	}
-	if err := writeSitemap(outDir, b.site, articles, tutorials); err != nil {
+	if err := writeSitemap(outDir, b.site, docs, articles, tutorials); err != nil {
 		return err
 	}
 	if err := writeRobots(outDir, b.site); err != nil {
 		return err
 	}
 
-	log.Printf("built the README, %d article(s) and %d tutorial(s) into %s", len(articles), len(tutorials), outDir)
+	log.Printf("built the README, %d documentation page(s), %d article(s) and %d tutorial(s) into %s", len(docs), len(articles), len(tutorials), outDir)
 	return nil
 }
 
@@ -459,6 +474,18 @@ func softwareApplicationJSONLD(baseURL, description string) (template.JS, error)
 // render Markdown that may contain a highlighted block, so they take Chroma's
 // palette too. The landing page is rendered Markdown as well (the README), so
 // it takes the same two and its own sheet on top.
+
+func (b *builder) renderDocsIndex(docs []Doc) error {
+	d := b.page("documentation", b.css.pages)
+	d.Docs = docs
+	return b.render("documentation.html.tmpl", "documentation/index.html", d)
+}
+
+func (b *builder) renderDoc(doc Doc) error {
+	d := b.page("documentation", b.css.pages, b.css.code)
+	d.Doc = &doc
+	return b.render("doc.html.tmpl", filepath.Join("documentation", doc.Slug, "index.html"), d)
+}
 
 func (b *builder) renderIndex(articles []Article) error {
 	d := b.page("articles", b.css.pages)

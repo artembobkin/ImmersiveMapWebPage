@@ -7,49 +7,47 @@ ImmersiveMap is a **pure Swift + Metal map** rendering engine for **SwiftUI apps
 <!-- gallery:start -->
 <!-- Written by Tools/ReadmeFrames from frames.json: edit the frames, not these rows. -->
 <p align="center">
-  <img src="Assets/readme-globe-europe.png" width="100%" alt="The globe over Europe: biomes, the road network and the atmosphere">
+  <img src="Assets/readme-globe-europe.avif" width="100%" alt="The globe over Europe: biomes, the road network and the atmosphere">
 </p>
 <p align="center">
-  <img src="Assets/readme-matterhorn.png" width="49%" alt="The Matterhorn's summit on the terrain relief, with the hillshade and the mountain shadows">
-  <img src="Assets/readme-zermatt-valley.png" width="49%" alt="The valley of Zermatt from above, the relief under the land cover and the mountain air">
+  <img src="Assets/readme-matterhorn.avif" width="49%" alt="The Matterhorn's summit on the terrain relief, with the hillshade and the mountain shadows">
+  <img src="Assets/readme-zermatt-valley.avif" width="49%" alt="The valley of Zermatt from above, the relief under the land cover and the mountain air">
 </p>
 <p align="center">
-  <img src="Assets/readme-manhattan.png" width="49%" alt="Lower Manhattan with extruded buildings, shadows and street names">
-  <img src="Assets/readme-rome.png" width="49%" alt="The Roman Forum from a tilted camera, with the points of interest">
+  <img src="Assets/readme-manhattan.avif" width="49%" alt="Lower Manhattan with extruded buildings, shadows and street names">
+  <img src="Assets/readme-rome.avif" width="49%" alt="The Roman Forum from a tilted camera, with the points of interest">
 </p>
 <p align="center">
-  <img src="Assets/readme-moscow-city.png" width="49%" alt="The towers of Moscow City over the Third Ring Road">
-  <img src="Assets/readme-kremlin.png" width="49%" alt="The Kremlin wall and the Saviour Tower from the model archive">
+  <img src="Assets/readme-moscow-city.avif" width="49%" alt="The towers of Moscow City over the Third Ring Road">
+  <img src="Assets/readme-kremlin.avif" width="49%" alt="The Kremlin wall and the Saviour Tower from the model archive">
 </p>
 <p align="center">
-  <img src="Assets/readme-bolshoi.png" width="49%" alt="The Bolshoi Theatre at street level, a 3D model standing in for the building">
-  <img src="Assets/readme-paris-region.png" width="49%" alt="Paris and its suburbs on the relief, with the route shields">
+  <img src="Assets/readme-bolshoi.avif" width="49%" alt="The Bolshoi Theatre at street level, a 3D model standing in for the building">
+  <img src="Assets/readme-paris-region.avif" width="49%" alt="Paris and its suburbs on the relief, with the route shields">
 </p>
 <p align="center">
-  <img src="Assets/readme-san-francisco.png" width="49%" alt="San Francisco's hills on the relief, toward the bay">
-  <img src="Assets/readme-san-francisco-downtown.png" width="49%" alt="Downtown San Francisco from above, with the points of interest">
+  <img src="Assets/readme-san-francisco.avif" width="49%" alt="San Francisco's hills on the relief, toward the bay">
+  <img src="Assets/readme-san-francisco-downtown.avif" width="49%" alt="Downtown San Francisco from above, with the points of interest">
 </p>
 <p align="center">
-  <img src="Assets/readme-berlin-night.png" width="49%" alt="Berlin Mitte in the dark palette">
-  <img src="Assets/readme-avatars-shibuya.png" width="49%" alt="Avatar markers with badges over Shibuya">
+  <img src="Assets/readme-berlin-night.avif" width="49%" alt="Berlin Mitte in the dark palette">
+  <img src="Assets/readme-avatars-shibuya.avif" width="49%" alt="Avatar markers with badges over Shibuya">
 </p>
 <p align="center">
-  <img src="Assets/readme-scene-models-paris.png" width="49%" alt="A 3D scene model by the Eiffel Tower">
-  <img src="Assets/readme-avatars-globe.png" width="49%" alt="Avatar markers on the globe">
+  <img src="Assets/readme-scene-models-paris.avif" width="49%" alt="A 3D scene model by the Eiffel Tower">
+  <img src="Assets/readme-avatars-globe.avif" width="49%" alt="Avatar markers on the globe">
 </p>
 <!-- gallery:end -->
 
 ## Features
 
-Built-in Protomaps vector tiles, native iOS (UIKit host), native macOS, SwiftUI integration, map styling and colors, SwiftUI markers, avatars, 3D scene models, landmark models that replace the map's buildings, tour video export.
+Built-in Protomaps vector tiles, native iOS (UIKit host), native macOS, SwiftUI integration, map styling and colors, SwiftUI markers, avatars, 3D scene models, 3D building models from a model archive, tour video export.
+
+The guides are in [Documentation](Documentation): [the tile source](Documentation/TileSource.md), [the camera](Documentation/Camera.md), [the style](Documentation/Style.md), [custom styles](Documentation/CustomStyle.md), [the relief](Documentation/Relief.md) and [attribution](Documentation/Attribution.md).
 
 ## Map Data
 
-The map draws the Protomaps basemap, an OpenStreetMap planet in a single PMTiles archive that the engine reads with HTTP range requests, with no tile server in between. The archive hosted for this project is the default, and `.tileArchive(_:headers:)` points the map at any [Protomaps planet build](https://maps.protomaps.com/builds/) or a region cut from one.
-
-The 3D building models are a second PMTiles archive of the same kind, built for this project and hosted on Cloudflare's S3-compatible storage.
-
-The globe's overview (the biomes, the lakes and the road network of the low zooms) is baked from RESOLVE and Natural Earth data into the package resources, in this repository, so it ships with the engine and loads from no server.
+The map draws OpenStreetMap data from a single [PMTiles](https://docs.protomaps.com/pmtiles/) file, read straight from storage with no tile server. The 3D building models come from a second archive, and the globe's biomes ship inside the package. To use your own tiles, see [Setting up the tile source](Documentation/TileSource.md).
 
 ## Quick Start
 
@@ -73,10 +71,12 @@ Add ImmersiveMap as a Swift Package dependency:
 https://github.com/artembobkin/ImmersiveMap.git
 ```
 
+The package compiles its Metal shaders with a build plugin, so Xcode asks you to trust it on the first build. On the command line, pass `-skipPackagePluginValidation` to `xcodebuild`.
+
 ## Requirements
 
-- Swift 6.0+
-- Xcode 16+
+- Swift 6.1+
+- Xcode 16.3+
 - iOS 18+
 - macOS 15+
 - Metal-capable device or simulator
@@ -99,12 +99,12 @@ Maps powered by ImmersiveMap (immersivemap.dev)
 
 ## Contributing
 
-ImmersiveMap is currently maintained as a single-maintainer project. Issues and feedback are welcome. Pull requests are accepted. For bug reports, feature requests, questions and ideas, open an [issue](https://github.com/artembobkin/ImmersiveMap/issues).
+ImmersiveMap is currently maintained as a single-maintainer project. Pull requests are accepted.
 
 ## License
 
 ImmersiveMap is available under the MIT license. See [LICENSE](LICENSE). The internal earcut triangulator is a port of ISC-licensed Mapbox code, and its notice heads [EarcutCore.swift](Sources/Earcut/EarcutCore.swift).
 
-## Commercial Support
+## Support
 
-I am available for consulting and custom ImmersiveMap integrations. To get in touch, open an [issue](https://github.com/artembobkin/ImmersiveMap/issues/new).
+Feel free to open an [issue](https://github.com/artembobkin/ImmersiveMap/issues/new) with a question, a bug or an idea. I am happy to help.

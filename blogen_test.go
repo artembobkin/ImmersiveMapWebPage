@@ -80,6 +80,8 @@ ImmersiveMap is a **pure Swift + Metal map** engine for [SwiftUI](https://develo
 ![diagram](docs/pipeline.png)
 
 See [LICENSE](LICENSE), [the sources](/Sources/Map.swift), [the start](#quick-start) and [the tracker](https://github.com/o/r/issues).
+
+Read [the documentation](Documentation), [Camera](Documentation/Camera.md#limits) and [the style](https://github.com/o/r/blob/main/Documentation/CustomStyle.md).
 `
 
 // testReadme writes goodReadme into dir and returns the source that reads it
@@ -88,6 +90,18 @@ func testReadme(t *testing.T, dir string) readmeSource {
 	t.Helper()
 	writeFile(t, dir, "README.md", goodReadme)
 	return readmeSource{Path: filepath.Join(dir, "README.md"), Repo: "o/r", Branch: "main"}
+}
+
+// testDocs writes a small documentation folder into dir and returns where it
+// is. Between them the files link to each other, to the rest of the repository
+// and to an image, which is everything the link rewriting has to tell apart.
+func testDocs(t *testing.T, dir string) string {
+	t.Helper()
+	docs := filepath.Join(dir, "documentation")
+	writeFile(t, docs, "Camera.md", "# Camera\n\nThe camera looks at a point.\n\n## Limits\n\n```swift\nlet x = 1\n```\n\nSee [Custom style](CustomStyle.md#a-schema) and ![a frame](images/frame.png).\n")
+	writeFile(t, docs, "CustomStyle.md", "# Custom *style*\n\nWhen the theme is not enough, see [Camera](./Camera.md), [the overview](../README.md#quick-start) and [the sources](../Sources/Map.swift).\n")
+	writeFile(t, docs, "not-markdown.txt", "ignored")
+	return docs
 }
 
 // TestParseMeta pins the front matter subset the generator accepts, and that a
@@ -198,8 +212,9 @@ func TestBuild(t *testing.T) {
 	writeFile(t, content, "hidden.md", "---\ntitle: T\ndate: 2026-01-01\ndescription: D\ndraft: true\n---\n")
 	writeFile(t, tutorials, "first-steps.md", "---\ntitle: First steps\ndate: 2026-08-01\ndescription: D\nvideo: abc123\n---\n")
 	rs := testReadme(t, dir)
+	docs := testDocs(t, dir)
 
-	if err := build(content, tutorials, siteDir, out, "https://example.com", false, rs); err != nil {
+	if err := build(content, tutorials, docs, siteDir, out, "https://example.com", false, rs); err != nil {
 		t.Fatalf("build: %v", err)
 	}
 
@@ -208,6 +223,7 @@ func TestBuild(t *testing.T) {
 		"articles/index.html", "articles/index.json", "articles/feed.xml",
 		"articles/morphing-a-globe/index.html",
 		"tutorials/index.html", "tutorials/first-steps/index.html",
+		"documentation/index.html", "documentation/camera/index.html", "documentation/custom-style/index.html",
 		"404.html",
 	} {
 		if _, err := os.Stat(filepath.Join(out, p)); err != nil {
@@ -231,6 +247,7 @@ func TestBuild(t *testing.T) {
 		pages := []string{
 			"index.html", "articles/index.html", "articles/morphing-a-globe/index.html",
 			"tutorials/index.html", "tutorials/first-steps/index.html",
+			"documentation/index.html", "documentation/camera/index.html",
 		}
 		var want []string
 		for _, p := range pages {
@@ -270,6 +287,10 @@ func TestBuild(t *testing.T) {
 			`href="https://github.com/o/r/blob/main/Sources/Map.swift"`,
 			`href="#quick-start"`,
 			`href="https://github.com/o/r/issues"`,
+			// The site has these pages, so a visitor stays on the site.
+			`href="/documentation/">the documentation`,
+			`href="/documentation/camera/#limits"`,
+			`href="/documentation/custom-style/">the style`,
 			`<img loading="lazy" src="https://raw.githubusercontent.com/o/r/main/Assets/readme-globe.png" width="49%"`,
 			// The first paragraph, as text, is the description everywhere. In an
 			// attribute html/template writes the plus sign as an entity.
@@ -283,6 +304,63 @@ func TestBuild(t *testing.T) {
 		for _, stale := range []string{`id="stars"`, `href="/#partners"`, `class="hero"`} {
 			if strings.Contains(page, stale) {
 				t.Errorf("landing page still carries %s from the hand-written page", stale)
+			}
+		}
+	})
+
+	// The documentation is the folder on GitHub, rendered: the pages link to
+	// each other here, and to everything else over there.
+	t.Run("documentation_is_the_folder_on_github", func(t *testing.T) {
+		index := readString(t, filepath.Join(out, "documentation", "index.html"))
+		for _, want := range []string{
+			`<link rel="canonical" href="https://example.com/documentation/"`,
+			`<a href="/documentation/camera/">Camera</a>`,
+			`<a href="/documentation/custom-style/">Custom style</a>`,
+			`<p>The camera looks at a point.</p>`,
+			`<a href="/documentation/" aria-current="page">Documentation</a>`,
+		} {
+			if !strings.Contains(index, want) {
+				t.Errorf("documentation index is missing %s", want)
+			}
+		}
+		camera := readString(t, filepath.Join(out, "documentation", "camera", "index.html"))
+		for _, want := range []string{
+			`<link rel="canonical" href="https://example.com/documentation/camera/"`,
+			`<h1>Camera</h1>`,
+			`class="chroma"`,
+			`href="/documentation/custom-style/#a-schema"`,
+			`src="https://raw.githubusercontent.com/o/r/main/Documentation/images/frame.png"`,
+		} {
+			if !strings.Contains(camera, want) {
+				t.Errorf("camera page is missing %s", want)
+			}
+		}
+		if strings.Contains(camera, `<h1 id="camera">`) {
+			t.Error("camera page carries its title twice")
+		}
+		custom := readString(t, filepath.Join(out, "documentation", "custom-style", "index.html"))
+		for _, want := range []string{
+			`href="/documentation/camera/"`,
+			`href="/#quick-start"`,
+			`href="https://github.com/o/r/blob/main/Sources/Map.swift"`,
+		} {
+			if !strings.Contains(custom, want) {
+				t.Errorf("custom style page is missing %s", want)
+			}
+		}
+		for _, p := range []string{"index.html", "documentation/index.html", "documentation/camera/index.html"} {
+			page := readString(t, filepath.Join(out, p))
+			if strings.Contains(page, "blob/main/Documentation") || strings.Contains(page, "tree/main/Documentation") {
+				t.Errorf("%s links to the documentation on GitHub", p)
+			}
+		}
+		if _, err := os.Stat(filepath.Join(out, "documentation", "not-markdown")); err == nil {
+			t.Error("a file that is not Markdown was rendered")
+		}
+		sitemap := readString(t, filepath.Join(out, "sitemap.xml"))
+		for _, want := range []string{"https://example.com/documentation/", "https://example.com/documentation/custom-style/"} {
+			if !strings.Contains(sitemap, "<loc>"+want+"</loc>") {
+				t.Errorf("sitemap is missing %s", want)
 			}
 		}
 	})
@@ -401,7 +479,7 @@ func TestBuild(t *testing.T) {
 		if err := os.Remove(filepath.Join(content, "morphing-a-globe.md")); err != nil {
 			t.Fatal(err)
 		}
-		if err := build(content, tutorials, siteDir, out, "https://example.com", false, rs); err != nil {
+		if err := build(content, tutorials, docs, siteDir, out, "https://example.com", false, rs); err != nil {
 			t.Fatal(err)
 		}
 		if _, err := os.Stat(filepath.Join(out, "articles", "morphing-a-globe")); err == nil {
@@ -417,7 +495,7 @@ func TestBuildRejectsBadSlugs(t *testing.T) {
 		dir := t.TempDir()
 		content := filepath.Join(dir, "articles")
 		writeFile(t, content, name, goodArticle)
-		err := build(content, filepath.Join(dir, "none"), siteDir, filepath.Join(dir, "dist"), "https://example.com", false, testReadme(t, dir))
+		err := build(content, filepath.Join(dir, "none"), testDocs(t, dir), siteDir, filepath.Join(dir, "dist"), "https://example.com", false, testReadme(t, dir))
 		if err == nil {
 			t.Errorf("%s: expected the build to fail", name)
 		}
@@ -430,7 +508,7 @@ func TestTutorialNeedsVideo(t *testing.T) {
 	dir := t.TempDir()
 	tutorials := filepath.Join(dir, "tutorials")
 	writeFile(t, tutorials, "no-video.md", "---\ntitle: T\ndate: 2026-01-01\ndescription: D\n---\n")
-	err := build(filepath.Join(dir, "articles"), tutorials, siteDir, filepath.Join(dir, "dist"), "https://example.com", false, testReadme(t, dir))
+	err := build(filepath.Join(dir, "articles"), tutorials, testDocs(t, dir), siteDir, filepath.Join(dir, "dist"), "https://example.com", false, testReadme(t, dir))
 	if err == nil || !strings.Contains(err.Error(), "video") {
 		t.Fatalf("err = %v, want a complaint about the missing video id", err)
 	}
@@ -445,7 +523,7 @@ func TestBuildNeedsReadme(t *testing.T) {
 	out := filepath.Join(dir, "dist")
 	writeFile(t, out, "sentinel.html", "the previous build")
 	rs := readmeSource{Path: filepath.Join(dir, "missing.md"), Repo: "o/r", Branch: "main"}
-	err := build(filepath.Join(dir, "articles"), filepath.Join(dir, "tutorials"), siteDir, out, "https://example.com", false, rs)
+	err := build(filepath.Join(dir, "articles"), filepath.Join(dir, "tutorials"), testDocs(t, dir), siteDir, out, "https://example.com", false, rs)
 	if err == nil || !strings.Contains(err.Error(), "README") {
 		t.Fatalf("err = %v, want a complaint about the README", err)
 	}
@@ -454,10 +532,56 @@ func TestBuildNeedsReadme(t *testing.T) {
 	}
 }
 
+// TestBuildNeedsDocumentation pins that documentation that is missing or has
+// nothing in it stops the build before the output is touched, as the README does.
+func TestBuildNeedsDocumentation(t *testing.T) {
+	for name, setup := range map[string]func(dir string) string{
+		"missing": func(dir string) string { return filepath.Join(dir, "none") },
+		"no pages": func(dir string) string {
+			writeFile(t, filepath.Join(dir, "d"), "a.txt", "x")
+			return filepath.Join(dir, "d")
+		},
+		"empty page": func(dir string) string {
+			writeFile(t, filepath.Join(dir, "d"), "Camera.md", " \n")
+			return filepath.Join(dir, "d")
+		},
+		"same url": func(dir string) string {
+			writeFile(t, filepath.Join(dir, "d"), "CustomStyle.md", "# A\n")
+			writeFile(t, filepath.Join(dir, "d"), "custom-style.md", "# B\n")
+			return filepath.Join(dir, "d")
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			out := filepath.Join(dir, "dist")
+			writeFile(t, out, "sentinel.html", "the previous build")
+			err := build(filepath.Join(dir, "articles"), filepath.Join(dir, "tutorials"), setup(dir), siteDir, out, "https://example.com", false, testReadme(t, dir))
+			if err == nil || !strings.Contains(err.Error(), "documentation") {
+				t.Fatalf("err = %v, want a complaint about the documentation", err)
+			}
+			if _, err := os.Stat(filepath.Join(out, "sentinel.html")); err != nil {
+				t.Fatal("the output was wiped although the build had nothing to put there")
+			}
+		})
+	}
+}
+
+func TestDocSlug(t *testing.T) {
+	for in, want := range map[string]string{
+		"Camera": "camera", "CustomStyle": "custom-style", "TileSource": "tile-source",
+		"PMTilesGuide": "pmtiles-guide", "Two words": "two-words", "under_score": "under-score",
+	} {
+		if got := docSlug(in); got != want {
+			t.Errorf("docSlug(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
 // TestReadmeLinks covers the rewriting of what the README says relative to
 // its repository, and what is left alone.
 func TestReadmeLinks(t *testing.T) {
 	raw, blob := "https://raw.githubusercontent.com/o/r/main/", "https://github.com/o/r/blob/main/"
+	rs := readmeSource{Repo: "o/r", Branch: "main"}
 	for _, c := range []struct{ in, want string }{
 		{`<img src="Assets/a.png">`, `<img src="` + raw + `Assets/a.png">`},
 		{`<img src="./Assets/a.png">`, `<img src="` + raw + `Assets/a.png">`},
@@ -470,8 +594,28 @@ func TestReadmeLinks(t *testing.T) {
 		{`<a href="//cdn.example.org/x">`, `<a href="//cdn.example.org/x">`},
 		{`<img src="data:image/png;base64,AAAA">`, `<img src="data:image/png;base64,AAAA">`},
 	} {
-		if got := absoluteGitHubLinks(c.in, raw, blob); got != c.want {
-			t.Errorf("absoluteGitHubLinks(%s) = %s, want %s", c.in, got, c.want)
+		if got := repoLinks(c.in, "", rs, nil); got != c.want {
+			t.Errorf("repoLinks(%s) = %s, want %s", c.in, got, c.want)
+		}
+	}
+
+	// From inside a folder, and with pages the site has.
+	pages := map[string]string{"README.md": "/", "Docs": "/d/", "Docs/A.md": "/d/a/"}
+	for _, c := range []struct{ in, want string }{
+		{`<a href="A.md">`, `<a href="/d/a/">`},
+		{`<a href="./A.md#part">`, `<a href="/d/a/#part">`},
+		{`<a href="../README.md">`, `<a href="/">`},
+		{`<a href="../Docs/">`, `<a href="/d/">`},
+		{`<a href="/Docs/A.md">`, `<a href="/d/a/">`},
+		{`<a href="` + blob + `Docs/A.md#part">`, `<a href="/d/a/#part">`},
+		{`<a href="https://github.com/o/r/tree/main/Docs">`, `<a href="/d/">`},
+		{`<a href="` + blob + `LICENSE">`, `<a href="` + blob + `LICENSE">`},
+		{`<a href="B.swift">`, `<a href="` + blob + `Docs/B.swift">`},
+		{`<a href="../Sources/C.swift">`, `<a href="` + blob + `Sources/C.swift">`},
+		{`<img src="pic.png">`, `<img src="` + raw + `Docs/pic.png">`},
+	} {
+		if got := repoLinks(c.in, "Docs", rs, pages); got != c.want {
+			t.Errorf("repoLinks(%s) = %s, want %s", c.in, got, c.want)
 		}
 	}
 
