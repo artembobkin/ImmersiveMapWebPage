@@ -7,11 +7,11 @@
 # is the backstop for a notification that never arrived. Each run fetches both,
 # compares them with the copies here, and commits and pushes whatever differs.
 #
-# Cloudflare is connected to this repository and is meant to build on every push
-# to main, but it started no build for some pushes that came within minutes of
-# the one before. So this also starts the build itself, through a deploy hook,
-# after a push by a person and after a commit made here. The workflow's own
-# pushes start no workflows, which is why the second case needs the step too.
+# Cloudflare is connected to this repository and builds on every push to main,
+# but it can run that build long after the push. So this also starts a build of
+# the newest commit itself, through a deploy hook, after a push by a person,
+# after a commit made here and when started by hand. The workflow's own pushes
+# start no workflows, which is why a commit made here needs the step too.
 #
 # The CLOUDFLARE_DEPLOY_HOOK secret is the hook's URL, and whoever has it can
 # start builds. Reading the two sources needs no secret, and the workflow's own
@@ -92,7 +92,7 @@ jobs:
           fi
 
       - name: Start the Cloudflare build
-        if: github.event_name == 'push' || steps.commit.outputs.committed == 'true'
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || steps.commit.outputs.committed == 'true'
         env:
           DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
         run: curl -fsS -o /dev/null -X POST "$DEPLOY_HOOK"

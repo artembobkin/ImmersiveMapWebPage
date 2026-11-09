@@ -98,10 +98,14 @@ Cloudflare Workers with static assets, connected to this repository: a push to
 The pushes come from two places, a person committing here and the follow-readme
 workflow committing a changed README or documentation page.
 
-Cloudflare started no build for some pushes that came within minutes of the one
-before, so the follow-readme workflow also starts one itself after either kind
-of push, through a deploy hook. The hook's URL is the `CLOUDFLARE_DEPLOY_HOOK`
-secret, and a push can therefore build twice, which is harmless.
+Cloudflare can run a build long after its push, and whatever finishes last is
+what the site serves, so two things guard against that. The follow-readme
+workflow also starts a build itself after either kind of push, through a deploy
+hook whose URL is the `CLOUDFLARE_DEPLOY_HOOK` secret. Running that workflow by
+hand does the same, which republishes the site without a commit. And
+`scripts/only-latest-commit.sh`, the first part of the build command, fails a
+build of any commit that is no longer the newest on `main`, which leaves the
+live site alone. A failed build in the dashboard with that message is expected.
 
 The only command the host needs is `npx wrangler deploy`: `wrangler.jsonc`
 carries the build command as well as the upload, so the site is rendered and

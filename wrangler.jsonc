@@ -8,9 +8,10 @@
   // Rendering the site is part of deploying it: wrangler runs this before it
   // uploads anything, so a deploy from a fresh clone works with no build step
   // configured anywhere else. `go run` rather than `make site` because the
-  // build image is guaranteed to have Go and not guaranteed to have make.
+  // build image is guaranteed to have Go and not guaranteed to have make. The
+  // script first refuses a commit that is no longer the newest on main.
   "build": {
-    "command": "go run . -content articles -tutorials tutorials -site site -out dist -base-url https://immersivemap.dev"
+    "command": "sh scripts/only-latest-commit.sh && go run . -content articles -tutorials tutorials -site site -out dist -base-url https://immersivemap.dev"
   },
   "assets": {
     // Produced by `make site`, wiped and rewritten on every build. The _headers
