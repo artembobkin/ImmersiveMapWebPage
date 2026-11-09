@@ -6,15 +6,21 @@
 # in that repository sends the repository_dispatch event below. The hourly run
 # is the backstop for a notification that never arrived. Each run fetches both,
 # compares them with the copies here, and commits and pushes whatever differs.
-# That push is a push to main like any other, so Cloudflare (which is connected
-# to this repository and builds on every push) renders and publishes the site;
-# nothing here deploys.
 #
-# No secrets here: both are public, and the workflow's own token can push to
-# the repository it runs in.
+# Cloudflare is connected to this repository and is meant to build on every push
+# to main, but it started no build for some pushes that came within minutes of
+# the one before. So this also starts the build itself, through a deploy hook,
+# after a push by a person and after a commit made here. The workflow's own
+# pushes start no workflows, which is why the second case needs the step too.
+#
+# The CLOUDFLARE_DEPLOY_HOOK secret is the hook's URL, and whoever has it can
+# start builds. Reading the two sources needs no secret, and the workflow's own
+# token can push to the repository it runs in.
 name: Follow the README and the documentation
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: "17 * * * *"
   repository_dispatch:
@@ -56,11 +62,13 @@ jobs:
           cp "$tmp"/Documentation/*.md documentation/
 
       - name: Commit what changed
+        id: commit
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          before=$(git rev-parse HEAD)
 
           # follow <path here> <path over there> <what to call it>
           follow() {
@@ -79,3 +87,12 @@ jobs:
           follow landing/README.md README.md "the README"
           follow documentation Documentation "the documentation"
           git push
+          if [ "$(git rev-parse HEAD)" != "$before" ]; then
+            echo "committed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Start the Cloudflare build
+        if: github.event_name == 'push' || steps.commit.outputs.committed == 'true'
+        env:
+          DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_DEPLOY_HOOK }}
+        run: curl -fsS -o /dev/null -X POST "$DEPLOY_HOOK"
