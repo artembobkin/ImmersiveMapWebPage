@@ -14,6 +14,12 @@
 [ -n "$WORKERS_CI_COMMIT_SHA" ] || exit 0
 [ "$WORKERS_CI_BRANCH" = main ] || exit 0
 
+# A deploy hook build reports the branch name here instead of a commit. It
+# builds whatever is newest on the branch, so there is nothing to compare.
+case "$WORKERS_CI_COMMIT_SHA" in
+  *[!0-9a-f]*) exit 0 ;;
+esac
+
 latest=$(git ls-remote "${SITE_REPO_URL:-https://github.com/artembobkin/ImmersiveMapWebPage.git}" refs/heads/main | cut -f1)
 [ -n "$latest" ] || exit 0
 
