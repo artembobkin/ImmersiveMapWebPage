@@ -2,18 +2,23 @@
 # Documentation folder of the ImmersiveMap repository, so the landing page and
 # the documentation pages follow them without anyone touching them.
 #
-# Once an hour both are fetched and compared with the copies here. Whatever
-# differs is committed and pushed. That push is a push to main like any other,
-# so Cloudflare (which is connected to this repository and builds on every
-# push) renders and publishes the site; nothing here deploys.
+# A push to either over there starts this at once: the notify-website workflow
+# in that repository sends the repository_dispatch event below. The hourly run
+# is the backstop for a notification that never arrived. Each run fetches both,
+# compares them with the copies here, and commits and pushes whatever differs.
+# That push is a push to main like any other, so Cloudflare (which is connected
+# to this repository and builds on every push) renders and publishes the site;
+# nothing here deploys.
 #
-# No secrets: both are public, and the workflow's own token can push to the
-# repository it runs in.
+# No secrets here: both are public, and the workflow's own token can push to
+# the repository it runs in.
 name: Follow the README and the documentation
 
 on:
   schedule:
     - cron: "17 * * * *"
+  repository_dispatch:
+    types: [immersivemap-pushed]
   workflow_dispatch:
 
 concurrency:
@@ -33,18 +38,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Fetch the README
-        run: |
-          curl -fsSL "https://raw.githubusercontent.com/$SOURCE_REPO/$SOURCE_BRANCH/README.md" -o landing/README.md
-          # A README that came back empty is a failed fetch, whatever curl said.
-          test -s landing/README.md
-
-      - name: Fetch the documentation
+      # From the archive of the branch rather than raw.githubusercontent.com:
+      # the raw host caches for minutes, so a run started by a push would read
+      # the old file, see no difference and stop.
+      - name: Fetch the README and the documentation
         run: |
           tmp=$(mktemp -d)
           curl -fsSL "https://github.com/$SOURCE_REPO/archive/refs/heads/$SOURCE_BRANCH.tar.gz" | tar -xz -C "$tmp" --strip-components=1
-          # No pages at all is a failed fetch, and must not wipe the copy.
+          # An empty README or no pages at all is a failed fetch, whatever curl
+          # said, and must not touch the copies.
+          test -s "$tmp/README.md"
           ls "$tmp"/Documentation/*.md > /dev/null
+          cp "$tmp/README.md" landing/README.md
           # Replaced whole, so a page deleted or renamed over there goes here too.
           rm -rf documentation
           mkdir documentation

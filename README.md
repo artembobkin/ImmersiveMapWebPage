@@ -21,10 +21,15 @@ not have, such as a source file, goes to GitHub. Its first paragraph becomes the
 description for search engines and link previews.
 
 The copy is kept by the GitHub Actions workflow in
-`.github/workflows/follow-readme.yml`: once an hour it fetches the README and,
-when the copy differs, commits the new one and pushes. That push is what
-Cloudflare builds from (see Deployment), so a README edit on GitHub is live
-within the hour, and nobody edits `landing/README.md` by hand.
+`.github/workflows/follow-readme.yml`: it fetches the README and, when the copy
+differs, commits the new one and pushes. That push is what Cloudflare builds
+from (see Deployment), and nobody edits `landing/README.md` by hand.
+
+A push to the README or the Documentation folder of the ImmersiveMap repository
+starts the workflow at once: `.github/workflows/notify-website.yml` over there
+sends a `repository_dispatch` event, signed with the `WEBSITE_DISPATCH_TOKEN`
+secret, a token that may write to this repository's contents. The workflow also
+runs once an hour, in case a notification is lost.
 
 To change the landing page, change the README. To preview a README edit before
 pushing it over there, `make site README=../ImmersiveMap/README.md`. A README
