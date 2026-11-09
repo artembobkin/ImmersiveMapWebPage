@@ -56,6 +56,17 @@
 /* Otherwise a jump to a section lands it underneath the sticky header. */
 .docs-article .post-body :is(h2, h3) { scroll-margin-top: calc(var(--header-h) + 1.2rem); }
 
+/* A code block inside a list belongs to its bullet. The frame and the padding
+   of a full-width block made a one-line snippet look like a section of its
+   own, so here it is only a soft background, close under its sentence. The
+   gap between bullets is one value, whether or not they hold code. */
+.docs-article .post-body li + li { margin-top: .7em; }
+.docs-article .post-body li > p { margin: 0; }
+.docs-article .post-body li > pre {
+  margin: .45em 0 0; padding: .5rem .75rem;
+  border: 0; border-radius: 7px; font-size: .8rem;
+}
+
 /* ---- previous and next ---- */
 .docs-pager {
   display: flex; justify-content: space-between; gap: 1rem;
