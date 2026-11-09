@@ -100,7 +100,8 @@ func testDocs(t *testing.T, dir string) string {
 	docs := filepath.Join(dir, "documentation")
 	writeFile(t, docs, "Camera.md", "# Camera\n\nThe camera looks at a point.\n\n## Limits\n\n```swift\nlet x = 1\n```\n\nSee [Custom style](CustomStyle.md#a-schema) and ![a frame](images/frame.png).\n")
 	writeFile(t, docs, "CustomStyle.md", "# Custom *style*\n\nWhen the theme is not enough, see [Camera](./Camera.md), [the overview](../README.md#quick-start) and [the sources](../Sources/Map.swift).\n")
-	writeFile(t, docs, "Attribution.md", "# Attribution\n\nThe README does not mention this page.\n")
+	writeFile(t, docs, "Attribution.md", "# Attribution\n\nThe list of next pages does not mention this page.\n")
+	writeFile(t, docs, "GettingStarted.md", "# Getting started\n\nIn passing, see [Custom style](CustomStyle.md).\n\n## Next\n\n- [Camera](Camera.md)\n- [Custom style](CustomStyle.md)\n")
 	writeFile(t, docs, "not-markdown.txt", "ignored")
 	return docs
 }
@@ -314,10 +315,10 @@ func TestBuild(t *testing.T) {
 	t.Run("documentation_is_the_folder_on_github", func(t *testing.T) {
 		index := readString(t, filepath.Join(out, "documentation", "index.html"))
 		for _, want := range []string{
-			`<link rel="canonical" href="https://example.com/documentation/camera/"`, // it opens on the first page
-			`<a href="/documentation/camera/" aria-current="page">Camera</a>`,
+			`<link rel="canonical" href="https://example.com/documentation/getting-started/"`, // it opens on the first page
+			`<a href="/documentation/getting-started/" aria-current="page">Getting started</a>`,
 			`<a href="/documentation/custom-style/">Custom style</a>`,
-			`<p>The camera looks at a point.</p>`,
+			`<p>In passing, see`,
 			`<a href="/documentation/" aria-current="page">Documentation</a>`,
 		} {
 			if !strings.Contains(index, want) {
@@ -339,14 +340,16 @@ func TestBuild(t *testing.T) {
 				t.Errorf("camera page is missing %s", want)
 			}
 		}
-		// The README's order, then whatever it does not mention.
-		order := []string{">Camera</a>", ">Custom style</a>", ">Attribution</a>"}
+		// The first page, then its Next section, then whatever that does not
+		// mention. Custom style is linked earlier on the first page, which
+		// must not move it ahead of Camera.
+		order := []string{">Getting started</a>", ">Camera</a>", ">Custom style</a>", ">Attribution</a>"}
 		for i := 1; i < len(order); i++ {
 			if strings.Index(camera, order[i-1]) >= strings.Index(camera, order[i]) {
 				t.Errorf("%s should come before %s in the sidebar", order[i-1], order[i])
 			}
 		}
-		if strings.Contains(camera, `rel="prev"`) {
+		if strings.Contains(index, `rel="prev"`) {
 			t.Error("the first page has a previous page")
 		}
 		if strings.Contains(camera, `<h1 id="camera">`) {

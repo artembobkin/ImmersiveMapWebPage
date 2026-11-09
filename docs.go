@@ -22,6 +22,10 @@ import (
 // is what its relative links are relative to.
 const docsRepoDir = "Documentation"
 
+// docsStartFile is the page the documentation opens on. Its "Next" section sets
+// the order of the others (see sortDocs).
+const docsStartFile = "GettingStarted.md"
+
 // Doc is one rendered page of the documentation.
 type Doc struct {
 	Slug        string
@@ -45,7 +49,7 @@ type DocSection struct {
 // section with nothing in it must never replace the one that is live. The map
 // it also returns is what repoLinks needs: every file on GitHub that has a page
 // on this site.
-func loadDocs(dir, baseURL string, rs readmeSource, readmeSrc []byte) ([]Doc, map[string]string, error) {
+func loadDocs(dir, baseURL string, rs readmeSource) ([]Doc, map[string]string, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, nil, fmt.Errorf("reading the documentation: %w", err)
@@ -80,6 +84,7 @@ func loadDocs(dir, baseURL string, rs readmeSource, readmeSrc []byte) ([]Doc, ma
 
 	md := newMarkdown()
 	var docs []Doc
+	var startSrc []byte
 	for repoPath, slug := range slugs {
 		name := path.Base(repoPath)
 		src, err := os.ReadFile(filepath.Join(dir, name))
@@ -88,6 +93,9 @@ func loadDocs(dir, baseURL string, rs readmeSource, readmeSrc []byte) ([]Doc, ma
 		}
 		if len(strings.TrimSpace(string(src))) == 0 {
 			return nil, nil, fmt.Errorf("reading the documentation: %s is empty", name)
+		}
+		if name == docsStartFile {
+			startSrc = src
 		}
 		rendered, err := renderMarkdown(md, src)
 		if err != nil {
@@ -110,22 +118,28 @@ func loadDocs(dir, baseURL string, rs readmeSource, readmeSrc []byte) ([]Doc, ma
 			file:        name,
 		})
 	}
-	sortDocs(docs, readmeSrc)
+	sortDocs(docs, startSrc)
 	return docs, pages, nil
 }
 
-var readmeDocRe = regexp.MustCompile(docsRepoDir + `/([^)\s"#]+\.md)`)
+var (
+	docsNextRe = regexp.MustCompile(`(?ms)^##[ \t]+Next[ \t]*$(.*?)(?:^##[ \t]|\z)`)
+	docsLinkRe = regexp.MustCompile(`\]\((?:\./)?([^)\s"#/]+\.md)`)
+)
 
 // sortDocs puts the pages in reading order. The folder has no order of its own
-// and an alphabetical one starts on whatever sorts first, but the README
-// introduces the guides in the order they are meant to be read, so that order
-// is used, and it stays GitHub's to change. Pages the README does not mention
-// come after, by title.
-func sortDocs(docs []Doc, readmeSrc []byte) {
-	rank := map[string]int{}
-	for _, m := range readmeDocRe.FindAllSubmatch(readmeSrc, -1) {
-		if _, seen := rank[string(m[1])]; !seen {
-			rank[string(m[1])] = len(rank)
+// and an alphabetical one starts on whatever sorts first, but the first page
+// ends with a "Next" section that lists the others in the order they are meant
+// to be read, so that order is used, and it stays GitHub's to change. Only that
+// section counts, because the text above it links to pages in passing. Pages it
+// does not mention come after, by title.
+func sortDocs(docs []Doc, startSrc []byte) {
+	rank := map[string]int{docsStartFile: 0}
+	if next := docsNextRe.FindSubmatch(startSrc); next != nil {
+		for _, m := range docsLinkRe.FindAllSubmatch(next[1], -1) {
+			if _, seen := rank[string(m[1])]; !seen {
+				rank[string(m[1])] = len(rank)
+			}
 		}
 	}
 	position := func(d Doc) int {

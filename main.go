@@ -214,7 +214,7 @@ func build(contentDir, tutorialDir, docsDir, siteDir, outDir, baseURL string, dr
 	if err != nil {
 		return err
 	}
-	docs, pages, err := loadDocs(docsDir, baseURL, rs, readmeSrc)
+	docs, pages, err := loadDocs(docsDir, baseURL, rs)
 	if err != nil {
 		return err
 	}
