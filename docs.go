@@ -143,15 +143,18 @@ func sortDocs(docs []Doc, readmeSrc []byte) {
 }
 
 var (
-	docWordRe = regexp.MustCompile(`([a-z0-9])([A-Z])`)
-	docSepRe  = regexp.MustCompile(`[^a-z0-9]+`)
+	docWordRe  = regexp.MustCompile(`([a-z])([A-Z])`)
+	docDigitRe = regexp.MustCompile(`([0-9][A-Z]?)([A-Z][a-z])`)
+	docSepRe   = regexp.MustCompile(`[^a-z0-9]+`)
 )
 
-// docSlug makes a URL out of a filename: CustomStyle becomes custom-style. The
-// names are GitHub's to choose, so they are converted rather than required to
-// be slugs already.
+// docSlug makes a URL out of a filename: CustomStyle becomes custom-style. A
+// number keeps the capital that belongs to it, so 3DContent becomes 3d-content.
+// The names are GitHub's to choose, so they are converted rather than required
+// to be slugs already.
 func docSlug(name string) string {
 	s := docWordRe.ReplaceAllString(name, "$1-$2")
+	s = docDigitRe.ReplaceAllString(s, "$1-$2")
 	s = docSepRe.ReplaceAllString(strings.ToLower(s), "-")
 	return strings.Trim(s, "-")
 }

@@ -589,6 +589,7 @@ func TestDocSlug(t *testing.T) {
 	for in, want := range map[string]string{
 		"Camera": "camera", "CustomStyle": "custom-style", "TileSource": "tile-source",
 		"PMTilesGuide": "pmtiles-guide", "Two words": "two-words", "under_score": "under-score",
+		"3DContent": "3d-content", "Layer3Data": "layer3-data", "MarkersAndTaps": "markers-and-taps",
 	} {
 		if got := docSlug(in); got != want {
 			t.Errorf("docSlug(%q) = %q, want %q", in, got, want)
