@@ -31,6 +31,34 @@ ImmersiveMapView()
                                                pitch: 1.0))
 ```
 
+### Cities
+
+For a well-known city, `ImmersiveMapCity` holds the coordinates, so the app keeps none:
+
+```swift
+ImmersiveMapView()
+    .cameraPosition(.city(.paris))
+```
+
+The camera stands over the city's centre at zoom 11, where the city shows whole, looking straight down with north up. Set the rest when you need it:
+
+```swift
+.cameraPosition(.city(.tokyo, zoom: 13, bearing: 0.5, pitch: 1.0))
+```
+
+The same value works wherever a camera position does, such as `camera.fly(to: .city(.sydney))` or a tour's shot. `ImmersiveMapCity.allCases` lists the cities for a picker, each with its English `name` and its `coordinate`.
+
+The cities:
+
+- **North America:** `newYork`, `losAngeles`, `sanFrancisco`, `chicago`, `washington`, `boston`, `miami`, `seattle`, `lasVegas`, `toronto`, `vancouver`, `montreal`, `mexicoCity`.
+- **South America:** `rioDeJaneiro`, `saoPaulo`, `buenosAires`, `lima`, `bogota`, `santiago`.
+- **Europe:** `london`, `paris`, `berlin`, `madrid`, `barcelona`, `rome`, `milan`, `amsterdam`, `vienna`, `prague`, `lisbon`, `athens`, `stockholm`, `copenhagen`, `oslo`, `helsinki`, `dublin`, `brussels`, `zurich`, `munich`, `warsaw`, `budapest`, `istanbul`, `moscow`, `saintPetersburg`, `kyiv`.
+- **Africa and the Middle East:** `dubai`, `telAviv`, `cairo`, `capeTown`, `johannesburg`, `nairobi`, `lagos`, `marrakesh`.
+- **Asia:** `tokyo`, `osaka`, `seoul`, `beijing`, `shanghai`, `hongKong`, `taipei`, `singapore`, `bangkok`, `kualaLumpur`, `jakarta`, `manila`, `hanoi`, `mumbai`, `delhi`.
+- **Oceania:** `sydney`, `melbourne`, `auckland`.
+
+A place that is not in the list takes an `ImmersiveMapCameraPosition` with its own coordinates, as above.
+
 ## Moving the camera from code
 
 Keep an `ImmersiveMapCameraController` and attach it to the map:
@@ -54,7 +82,11 @@ Then:
       // false when a gesture or another command interrupted it
   }
   ```
-- **Follow a path.** `camera.follow(path:duration:)` carries the camera along an `ImmersiveMapGeoPath`, turned to the direction of travel by default.
+- **Follow a path.** `camera.follow(path:duration:)` carries the camera along an `ImmersiveMapGeoPath`, turned to the direction of travel by default:
+  ```swift
+  camera.follow(path: path, duration: 20, curve: .linear)
+  ```
+  `curve` sets the pace. `.easeOut`, the default, leaves at full speed and settles onto the end, and `.linear` keeps one speed. A model can fly the same path with the camera on it (see [3D content](3DContent.md)).
 - **Stop.** `camera.cancelFlight()` and `camera.cancelFollow()`.
 
 The controller also tells you where the camera is: `currentCameraPosition()`, and `onCameraPositionChanged` as it moves. `onUserInteractionBegan` reports that the user took the camera.
@@ -70,6 +102,8 @@ tour.start(shots: [
     ImmersiveMapCameraTourShot(position: louvre, options: CameraFlightOptions(duration: 3)),
 ], loop: true)
 ```
+
+The tour flies to the first shot from wherever the camera is. Pass `establish:` to jump to a starting position first. The same shots can be recorded into a video (see [Export](Export.md)).
 
 ## On-screen buttons
 

@@ -1,5 +1,7 @@
 # Getting started
 
+ImmersiveMap is a map for SwiftUI apps on iOS and macOS: a globe that unrolls into a flat map, with buildings, relief, your own data and 3D models. This page takes you from adding the package to the first map on screen.
+
 ## Adding the package
 
 In Xcode, choose File > Add Package Dependencies and enter:
@@ -26,7 +28,7 @@ struct ContentView: View {
 }
 ```
 
-This is the whole planet from the hosted tiles, with the built-in style, the globe at low zooms, buildings, trees and the attribution badge. Nothing needs a key or an account.
+This is the whole planet from the hosted tiles, with the built-in style, the globe at low zooms, buildings with detailed models of the landmarks (see [3D content](3DContent.md)), trees and the attribution badge. Nothing needs a key or an account.
 
 ## Modifiers
 
@@ -34,7 +36,7 @@ Everything about the map is set by modifiers on the view:
 
 ```swift
 ImmersiveMapView()
-    .cameraPosition(ImmersiveMapCameraPosition(latitudeDegrees: 48.858, longitudeDegrees: 2.294, zoom: 15))
+    .cameraPosition(.city(.paris, zoom: 15))
     .night()
     .shadows(strength: 0.6)
     .trees(isEnabled: false)
@@ -59,7 +61,7 @@ The modifiers on the view apply over the value you pass. The same value configur
 
 ## Changing the settings
 
-Pass new values whenever your state changes, and the map follows. Most changes apply on the next frame: the camera, the light and the shadows, the fog, the layers, the attribution.
+Pass new values whenever your state changes, and the map follows. Most changes apply on the next frame: the camera, the light and the shadows, the fog, the attribution.
 
 A few change how the tiles are prepared, so the map is built again and reloads what it shows, from the disk cache where it can: the tile source, the style (`.night()` included), the labels, the caches, the avatar settings, the model archive, and `.msaa()`. Change them when the user asks for it, not on every frame.
 
